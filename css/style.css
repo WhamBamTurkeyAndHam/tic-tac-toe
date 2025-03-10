@@ -1,0 +1,36 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.main-container {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr 5fr 1fr;
+}
+
+header {
+  background-color: green; /* Visibility */
+}
+
+.game-main-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+}
+
+.game-left-container {
+  background-color: purple; /* Visibility */
+}
+
+.game-middle-container {
+  background-color: yellow; /* Visibility */
+}
+
+.game-right-container {
+  background-color: crimson; /* Visibility */
+}
+
+footer {
+  background-color: orange; /* Visibility */
+}
