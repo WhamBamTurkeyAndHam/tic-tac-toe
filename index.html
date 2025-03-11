@@ -4,16 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Emblema+One&display=swap" rel="stylesheet">
   <script src="js/main.js" defer></script>
   <title>Tic Tac Toe</title>
 </head>
 <body>
   <div class="main-container" id="mainContainer">
-    <header></header>
-    <div class="game-main-container" id="gameMainContainer">
-      <div class="game-left-container" id="gameLeftContainer"></div>
-      <div class="game-middle-container" id="gameMiddleContainer"></div>
-      <div class="game-right-container" id="gameRightContainer"></div>
+    <header class="header-container">
+      <div class="text-3d text-tic" data-text="TIC">TIC</div>
+      <div class="text-3d text-tac" data-text="TAC">TAC</div>
+      <div class="text-3d text-toe" data-text="TOE">TOE</div>
+    </header>
+    <div class="game-master-container" id="gameMainContainer">
+      <div class="game-left-container" id="gameLeftContainer">
+        <div class="game-left-card"></div>
+      </div>
+      <div class="game-main-container" id="gameMiddleContainer">
+        <div class="game-main-card"></div>
+      </div>
+      <div class="game-right-container" id="gameRightContainer">
+        <div class="game-right-card"></div>
+      </div>
     </div>
     <footer></footer>
   </div>

@@ -1,7 +1,19 @@
+:root {
+  --main-color: rgb(246, 127, 9);
+  --secondary-color: rgb(9, 246, 127);
+  --tertiary-color: rgb(127, 9, 246);
+  --main-box-color: rgb(184, 123, 71);
+  --secondary-box-color: rgb(184, 179, 71);
+  --tertiary-box-color: rgb(184, 71, 76);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: "Emblema One", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .main-container {
@@ -10,27 +22,81 @@
   grid-template-rows: 1fr 5fr 1fr;
 }
 
+/* Header */
 header {
-  background-color: green; /* Visibility */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
 }
 
-.game-main-container {
+.text-3d {
+  font-size: 7rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 1rem;
+}
+
+.text-tic {
+  text-shadow: 
+  5px 5px 0 var(--secondary-color),
+  6px 6px 0 var(--secondary-color),
+  7px 7px 0 var(--secondary-color),
+  8px 8px 0 var(--secondary-color),
+  9px 9px 0 var(--secondary-color),
+  10px 10px 0 var(--secondary-color);
+}
+
+.text-tac {
+  text-shadow: 
+  5px 5px 0 var(--main-color),
+  6px 6px 0 var(--main-color),
+  7px 7px 0 var(--main-color),
+  8px 8px 0 var(--main-color),
+  9px 9px 0 var(--main-color),
+  10px 10px 0 var(--main-color);
+}
+
+.text-toe {
+  text-shadow: 
+  5px 5px 0 var(--tertiary-color),
+  6px 6px 0 var(--tertiary-color),
+  7px 7px 0 var(--tertiary-color),
+  8px 8px 0 var(--tertiary-color),
+  9px 9px 0 var(--tertiary-color),
+  10px 10px 0 var(--tertiary-color);
+}
+
+/* Game container */
+.game-master-container {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  /* If browser can't support it */
+  background: linear-gradient(90deg, var(--secondary-color) 0, var(--main-color) 35%, 
+    var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%);
+  /* If browser can support it */
+  background: linear-gradient(in oklch 90deg, var(--secondary-color) 0, var(--main-color) 35%, 
+    var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%);
 }
 
-.game-left-container {
-  background-color: purple; /* Visibility */
-}
-
-.game-middle-container {
-  background-color: yellow; /* Visibility */
-}
-
+.game-left-container,
+.game-main-container,
 .game-right-container {
-  background-color: crimson; /* Visibility */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-footer {
-  background-color: orange; /* Visibility */
+.game-left-card,
+.game-main-card,
+.game-right-card {
+  height: 90%;
+  width: 90%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(7px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
