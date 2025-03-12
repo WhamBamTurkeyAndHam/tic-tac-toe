@@ -66,8 +66,10 @@ header {
 
 /* Game container */
 .game-master-container {
+  padding: 1rem;
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
+  /* grid-template-columns: repeat(auto-fit, minmax(300px, 6fr)); */
+  grid-template-columns: repeat(5, 1fr);
   /* If browser can't support it */
   background: linear-gradient(90deg, var(--secondary-color) 0, var(--main-color) 35%, 
     var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%);
@@ -84,11 +86,23 @@ header {
   align-items: center;
 }
 
+.game-left-container {
+  grid-column: 1 / 2;
+}
+
+.game-main-container {
+  grid-column: 2 / 5;
+}
+
+.game-right-container {
+  grid-column: 5 / 6;
+}
+
 .game-left-card,
 .game-main-card,
 .game-right-card {
-  height: 90%;
-  width: 90%;
+  height: 95%;
+  width: 95%;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -98,6 +112,36 @@ header {
   align-items: center;
 }
 
+/* Cells */
+#game-board {
+  height: 90%;
+  width: 90%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.top-border {
+  border-top: 5px solid rgba(255, 255, 255, 0.6);
+}
+
+.right-border {
+  border-right: 5px solid rgba(255, 255, 255, 0.6);
+}
+
+.bottom-border {
+  border-bottom: 5px solid rgba(255, 255, 255, 0.6);
+}
+
+.left-border {
+  border-left: 5px solid rgba(255, 255, 255, 0.6);
+}
+
+.all-border {
+  border: 5px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Text Animation */
 .wave-text {
   gap: 0.5rem;
 }
