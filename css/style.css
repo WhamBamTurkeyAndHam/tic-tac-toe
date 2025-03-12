@@ -2,9 +2,6 @@
   --main-color: rgb(246, 127, 9);
   --secondary-color: rgb(9, 246, 127);
   --tertiary-color: rgb(127, 9, 246);
-  --main-box-color: rgb(184, 123, 71);
-  --secondary-box-color: rgb(184, 179, 71);
-  --tertiary-box-color: rgb(184, 71, 76);
 }
 
 * {
@@ -99,4 +96,23 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.wave-text {
+  gap: 0.5rem;
+}
+
+.text-waving-animation {
+  display: inline-block;
+  animation: wave 1.2s;
+  animation-delay: calc(0.1s * var(--i));
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
