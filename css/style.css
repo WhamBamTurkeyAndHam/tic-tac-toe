@@ -8,7 +8,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "Emblema One", system-ui;
+  font-family: "Permanent Marker", cursive;
   font-weight: 400;
   font-style: normal;
 }
@@ -16,60 +16,62 @@
 .main-container {
   height: 100vh;
   display: grid;
-  grid-template-rows: 1fr 5fr 1fr;
+  grid-template-rows: auto 1fr auto;
 }
 
-/* Header */
-header {
+/* Header And Footer */
+header,
+footer {
+  padding: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 2rem;
 }
 
-.text-3d {
-  font-size: 7rem;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: 1rem;
+.text-3d-header,
+.text-3d-footer {
+  color: black;
 }
 
-.text-tic {
+.text-3d-header {
+  font-size: 7rem;
+  letter-spacing: 2rem;
+}
+
+.text-3d-footer {
+  font-size: 4rem;
+  letter-spacing: 0.5rem;
+}
+
+/* Text Shadowing */
+.text-green,
+.cross-score {
   text-shadow: 
   5px 5px 0 var(--secondary-color),
   6px 6px 0 var(--secondary-color),
-  7px 7px 0 var(--secondary-color),
-  8px 8px 0 var(--secondary-color),
-  9px 9px 0 var(--secondary-color),
-  10px 10px 0 var(--secondary-color);
+  7px 7px 0 var(--secondary-color);
 }
 
-.text-tac {
+.text-orange {
   text-shadow: 
   5px 5px 0 var(--main-color),
   6px 6px 0 var(--main-color),
-  7px 7px 0 var(--main-color),
-  8px 8px 0 var(--main-color),
-  9px 9px 0 var(--main-color),
-  10px 10px 0 var(--main-color);
+  7px 7px 0 var(--main-color);
 }
 
-.text-toe {
+.text-purple,
+.circle-score {
   text-shadow: 
   5px 5px 0 var(--tertiary-color),
   6px 6px 0 var(--tertiary-color),
-  7px 7px 0 var(--tertiary-color),
-  8px 8px 0 var(--tertiary-color),
-  9px 9px 0 var(--tertiary-color),
-  10px 10px 0 var(--tertiary-color);
+  7px 7px 0 var(--tertiary-color);
 }
 
 /* Game container */
-.game-master-container {
-  padding: 1rem;
-  display: grid;
-  /* grid-template-columns: repeat(auto-fit, minmax(300px, 6fr)); */
-  grid-template-columns: repeat(5, 1fr);
+.game-background {
+  display: flex;
+  justify-content: center;
   /* If browser can't support it */
   background: linear-gradient(90deg, var(--secondary-color) 0, var(--main-color) 35%, 
     var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%);
@@ -78,38 +80,145 @@ header {
     var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%);
 }
 
-.game-left-container,
-.game-main-container,
-.game-right-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.game-left-container {
-  grid-column: 1 / 2;
-}
-
-.game-main-container {
-  grid-column: 2 / 5;
-}
-
-.game-right-container {
-  grid-column: 5 / 6;
-}
-
-.game-left-card,
-.game-main-card,
-.game-right-card {
-  height: 95%;
+.game-master-container {
   width: 95%;
-  background: rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto 1fr;
+}
+
+/* Cards Background */
+.cross-left-card,
+.game-main-card,
+.circle-right-card,
+.cross-score,
+.circle-score,
+.button-container {
+  height: 100%;
+  width: 90%;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(7px);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Middle Buttons */
+.button-container {
+  width: 100%;
+  grid-area: 1 / 2 / 2 / 5;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2rem;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.difficulty-button-container,
+.reset-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.difficulty-button,
+.reset-button {
+  padding: 1rem;
+  border-radius: 15px;
+  font-size: 3rem;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.reset-button {
+  width: 25%;
+}
+
+.difficulty-button:hover,
+.reset-button:hover {
+  transform: scale(1.1);
+  transition: all 0.25s;
+  color: white;
+  -webkit-text-stroke: 1.5px black;
+}
+
+.difficulty-button:active,
+.reset-button:active {
+  transform: scale(0.95);
+}
+
+.easy:hover {
+  background-color: var(--secondary-color);
+}
+
+.medium:hover {
+  background-color: var(--main-color);
+}
+
+.hard:hover {
+  background-color: var(--tertiary-color);
+}
+
+.reset-button:hover {
+  background-color: red;
+}
+
+.cross-score,
+.circle-score {
+  font-size: 5rem;
+  padding: 1rem;
+}
+
+.cross-score {
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+.circle-score {
+  grid-area: 1 / 5 / 2 / 6;
+}
+
+.cross-left-card,
+.circle-right-card {
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.cross-left-card {
+  grid-area: 2 / 1 / 3 / 2;
+}
+
+.game-main-card {
+  grid-area: 2 / 2 / 2 / 5;
+  width: 100%;
+}
+
+.circle-right-card {
+  grid-area: 2 / 5 / 3 / 6;
+}
+
+/* X and O's */
+.cross,
+.circle {
+  font-size: 10rem;
+  -webkit-text-stroke: 3px black;
+  cursor: pointer;
+  padding: 1rem;
+}
+
+.cross {
+  color: var(--secondary-color);
+}
+
+.circle {
+  color: var(--tertiary-color);
 }
 
 /* Cells */
@@ -141,11 +250,19 @@ header {
   border: 5px solid rgba(255, 255, 255, 0.6);
 }
 
-/* Text Animation */
-.wave-text {
-  gap: 0.5rem;
+footer {
+  font-size: 4rem;
 }
 
+footer > .wave-text {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Text Animation */
 .text-waving-animation {
   display: inline-block;
   animation: wave 1.2s;
@@ -157,6 +274,6 @@ header {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-15px);
   }
 }
