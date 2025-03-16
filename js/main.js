@@ -57,4 +57,120 @@ document.addEventListener('DOMContentLoaded', function() {
       animationInterval = null;
     });
   });
+
+  let currentPiece = null;
+  
+  // Set up drag events for all X pieces.
+  const xPieces = document.querySelectorAll('.cross');
+  xPieces.forEach(piece => {
+    piece.addEventListener('dragstart', (e) => {
+      // Create a custom drag image that matches your styling.
+      const dragImage = document.createElement('div');
+      dragImage.textContent = 'X';
+      dragImage.style.fontFamily = '"Permanent Marker", cursive';
+      dragImage.style.fontSize = '7rem';
+      dragImage.style.padding = '1rem'
+      dragImage.style.color = 'var(--secondary-color)';
+      dragImage.style.webkitTextStroke = '3px black';
+      dragImage.style.position = 'absolute';
+      document.body.appendChild(dragImage);
+      
+      // Use this custom element as the drag image.
+      e.dataTransfer.setDragImage(dragImage, 25, 25);
+      currentPiece = 'X';
+      
+      // Store for cleanup.
+      e.target.dragImage = dragImage;
+
+      piece.addEventListener('dragend', (e) => {
+        if (e.target.dragImage) {
+          document.body.removeChild(e.target.dragImage);
+          delete e.target.dragImage;
+        }
+      });
+    });
+  });
+  
+  // Set up drag events for all O pieces.
+  const oPieces = document.querySelectorAll('.circle');
+  oPieces.forEach(piece => {
+    piece.addEventListener('dragstart', (e) => {
+      // Create a custom drag image that matches your styling.
+      const dragImage = document.createElement('div');
+      dragImage.textContent = 'O';
+      dragImage.style.fontFamily = '"Permanent Marker", cursive';
+      dragImage.style.fontSize = '7rem';
+      dragImage.style.padding = '1rem'
+      dragImage.style.color = 'var(--tertiary-color)';
+      dragImage.style.webkitTextStroke = '3px black';
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px'
+      document.body.appendChild(dragImage);
+      
+      // Use this custom element as the drag image.
+      e.dataTransfer.setDragImage(dragImage, 25, 25);
+      currentPiece = 'O';
+      
+      // Store for cleanup.
+      e.target.dragImage = dragImage;
+  
+      piece.addEventListener('dragend', (e) => {
+        if (e.target.dragImage) {
+          document.body.removeChild(e.target.dragImage);
+          delete e.target.dragImage;
+        }
+      });
+    });
+  });
+  
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    const row = parseInt(cell.dataset.row);
+    const col = parseInt(cell.dataset.col);
+  
+    // Update cell display based on board state.
+    // Shows X/O or empty.
+    cell.textContent = board[row][col] || '';
+  
+    // Add highlight.
+    cell.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!board[row][col] && currentPiece === 'X') {
+        cell.textContent = 'X';
+        cell.classList.add('highlight-cross');
+      } else if (!board[row][col] && currentPiece === 'O') {
+        cell.textContent = 'O';
+        cell.classList.add('highlight-circle');
+      }
+    });
+    
+    // Remove highlight when drag leaves.
+    cell.addEventListener('dragleave', () => {
+      if (cell.classList.contains('highlight-cross') || cell.classList.contains('highlight-circle'))
+      cell.textContent = '';
+      cell.classList.remove('highlight-cross', 'highlight-circle');
+    });
+
+    // Handle drop.
+    cell.addEventListener('drop', (e) => {
+      e.preventDefault();
+
+      cell.textContent = '';
+      cell.classList.remove('highlight-cross', 'highlight-circle');
+      
+      // Only act on empty cells.
+      if (!board[row][col] && currentPiece) {
+        cell.textContent = currentPiece;
+        cell.classList.add(currentPiece === 'X' ? 'x' : 'o');
+        board[row][col] = currentPiece;
+      }
+    });
+  });
 });
+
+// Game Board.
+let board = [
+  [null, null, null],
+  [null, null, null],
+  [null, null, null]
+];

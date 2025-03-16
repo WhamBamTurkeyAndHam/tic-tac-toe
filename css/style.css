@@ -13,12 +13,6 @@
   font-style: normal;
 }
 
-.main-container {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-}
-
 /* Header And Footer */
 header,
 footer {
@@ -81,12 +75,11 @@ footer {
 }
 
 .game-master-container {
-  width: 95%;
+  width: 75%;
   padding: 2rem;
   gap: 2rem;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: auto 1fr;
 }
 
 /* Cards Background */
@@ -97,7 +90,6 @@ footer {
 .circle-score,
 .button-container {
   height: 100%;
-  width: 90%;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -135,7 +127,7 @@ footer {
   border: none;
   background-color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s;
 }
 
 .reset-button {
@@ -173,7 +165,7 @@ footer {
 
 .cross-score,
 .circle-score {
-  font-size: 5rem;
+  font-size: 4rem;
   padding: 1rem;
 }
 
@@ -206,28 +198,38 @@ footer {
 
 /* X and O's */
 .cross,
-.circle {
-  font-size: 10rem;
+.circle,
+.cell {
+  font-size: 7rem;
   -webkit-text-stroke: 3px black;
-  cursor: pointer;
+  cursor: grab;
   padding: 1rem;
 }
 
-.cross {
+.cross,
+.x {
   color: var(--secondary-color);
 }
 
-.circle {
+.circle,
+.o {
   color: var(--tertiary-color);
 }
 
 /* Cells */
 #game-board {
-  height: 90%;
-  width: 90%;
+  height: 80%;
+  width: 80%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
+}
+
+.cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: default;
 }
 
 .top-border {
@@ -250,6 +252,21 @@ footer {
   border: 5px solid rgba(255, 255, 255, 0.6);
 }
 
+.highlight-cross,
+.highlight-circle {
+  opacity: 0.6;
+  transition: all 0.5s;
+}
+
+.highlight-cross {
+  color: var(--secondary-color);
+}
+
+.highlight-circle {
+  color: var(--tertiary-color);
+}
+
+/* Footer */
 footer {
   font-size: 4rem;
 }
