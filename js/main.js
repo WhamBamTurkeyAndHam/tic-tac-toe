@@ -155,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cell.addEventListener('drop', (e) => {
       e.preventDefault();
 
-      cell.textContent = '';
       cell.classList.remove('highlight-cross', 'highlight-circle');
       
       // Only act on empty cells.
@@ -163,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.textContent = currentPiece;
         cell.classList.add(currentPiece === 'X' ? 'x' : 'o');
         board[row][col] = currentPiece;
+        
+        checkTurn(currentPiece === 'X' ? true : false);
       }
       checkGame();
     });
@@ -170,34 +171,65 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function checkLine(a, b, c) {
-  return a !== null && a === b && b === c;
-}
+  if (a !== null && a === b && b === c) {
+    crossContainer.classList.add('disabled');
+    circleContainer.classList.add('disabled');
+    checkModal(a);
+    return a;
+  };
+  return null;
+};
 
 function checkGame() {
+  let winner;
+
   for (let i = 0; i < 3; i++) {
     // Check if the board has a match in each row, column, and then diagonal. Otherwise, return false.
     //
     // Check Rows.
-    if (checkLine(board[i][0], board[i][1], board[i][2])) {
-      return alert('Winner Row');
-    };
-
+    winner = checkLine(board[i][0], board[i][1], board[i][2]);
     // Check Column.
-    if(checkLine(board[0][i], board[1][i], board[2][i])) {
-      return alert('Winner Column');
-    };
+    winner = checkLine(board[0][i], board[1][i], board[2][i]);
   };
 
   // Check Diagonal.
-  if (checkLine(board[0][0], board[1][1], board[2][2])) {
-    return alert('Winner, Top Left to Bottom Right');
-  };
-
-  if (checkLine(board[0][2], board[1][1], board[2][0])) {
-    return alert('Winner, Top Right to Bottom Left')
-  };
+  winner = checkLine(board[0][0], board[1][1], board[2][2]);
+  winner = checkLine(board[0][2], board[1][1], board[2][0]);
 
   return false;
+};
+
+function checkModal(winner) {
+  const resultsModal = document.querySelector('.modal-result');
+  const textModal = document.querySelector('.modal-text');
+
+  if (winner === 'X') {
+    resultsModal.showModal();
+    document.body.style.overflow = 'hidden';
+    resultsModal.classList.add('win-x');
+    resultsModal.style.border = 'outset var(--secondary-color) 5px';
+    textModal.textContent = 'X is the Winner';
+  } else {
+    resultsModal.showModal();
+    document.body.style.overflow = 'hidden';
+    resultsModal.classList.add('win-o');
+    resultsModal.style.border = 'outset var(--tertiary-color) 5px';
+    textModal.textContent = 'O is the Winner';
+  }
+};
+
+function checkTurn(value) {
+  crossContainer = document.querySelector('.cross-left-card');
+  circleContainer = document.querySelector('.circle-right-card');
+  let crossTurn = value === true ? false : true;
+
+  if (crossTurn) {
+    circleContainer.classList.add('disabled');
+    crossContainer.classList.remove('disabled');
+  } else {
+    crossContainer.classList.add('disabled');
+    circleContainer.classList.remove('disabled');
+  }
 };
 
 // Game Board.
@@ -206,3 +238,5 @@ let board = [
   [null, null, null],
   [null, null, null]
 ];
+
+checkTurn(false); // Temporary so that X can go first.
