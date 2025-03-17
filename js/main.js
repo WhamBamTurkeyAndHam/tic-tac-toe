@@ -164,9 +164,41 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.classList.add(currentPiece === 'X' ? 'x' : 'o');
         board[row][col] = currentPiece;
       }
+      checkGame();
     });
   });
 });
+
+function checkLine(a, b, c) {
+  return a !== null && a === b && b === c;
+}
+
+function checkGame() {
+  for (let i = 0; i < 3; i++) {
+    // Check if the board has a match in each row, column, and then diagonal. Otherwise, return false.
+    //
+    // Check Rows.
+    if (checkLine(board[i][0], board[i][1], board[i][2])) {
+      return alert('Winner Row');
+    };
+
+    // Check Column.
+    if(checkLine(board[0][i], board[1][i], board[2][i])) {
+      return alert('Winner Column');
+    };
+  };
+
+  // Check Diagonal.
+  if (checkLine(board[0][0], board[1][1], board[2][2])) {
+    return alert('Winner, Top Left to Bottom Right');
+  };
+
+  if (checkLine(board[0][2], board[1][1], board[2][0])) {
+    return alert('Winner, Top Right to Bottom Left')
+  };
+
+  return false;
+};
 
 // Game Board.
 let board = [
