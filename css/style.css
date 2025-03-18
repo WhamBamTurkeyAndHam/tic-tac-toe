@@ -40,7 +40,8 @@ footer {
 
 /* Text Shadowing */
 .text-green,
-.cross-score {
+.cross-score,
+.player-one-name {
   text-shadow: 
   5px 5px 0 var(--secondary-color),
   6px 6px 0 var(--secondary-color),
@@ -55,7 +56,8 @@ footer {
 }
 
 .text-purple,
-.circle-score {
+.circle-score,
+.player-two-name {
   text-shadow: 
   5px 5px 0 var(--tertiary-color),
   6px 6px 0 var(--tertiary-color),
@@ -86,8 +88,8 @@ footer {
 .cross-left-card,
 .game-main-card,
 .circle-right-card,
-.cross-score,
-.circle-score,
+.score-player-container-one,
+.score-player-container-two,
 .button-container {
   height: 100%;
   background: rgba(255, 255, 255, 0.3);
@@ -163,24 +165,38 @@ footer {
   background-color: red;
 }
 
-.cross-score,
-.circle-score {
-  font-size: 4rem;
+.score-player-container-one,
+.score-player-container-two {
   padding: 1rem;
+  display: grid;
+  place-content: center;
 }
 
-.cross-score {
+.score-player-container-one {
   grid-area: 1 / 1 / 2 / 2;
 }
 
-.circle-score {
+.score-player-container-two {
   grid-area: 1 / 5 / 2 / 6;
+}
+
+.player-one-name,
+.player-two-name {
+  font-size: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.cross-score,
+.circle-score {
+  font-size: 4rem;
 }
 
 .cross-left-card,
 .circle-right-card {
   flex-direction: column;
   padding: 1rem;
+  min-height: 1000px;
 }
 
 .cross-left-card {
@@ -292,8 +308,12 @@ dialog::backdrop {
   border-radius: 16px;
   backdrop-filter: blur(7px);
   outline: none;
-  display: grid;
   gap: 1.5rem;
+  transition: opacity 0.5s ease;
+}
+
+.modal-result[open] {
+  opacity: 1;
 }
 
 .win-x {
@@ -308,6 +328,13 @@ dialog::backdrop {
   5px 5px 0 var(--tertiary-color),
   6px 6px 0 var(--tertiary-color),
   7px 7px 0 var(--tertiary-color);
+}
+
+.tie {
+  text-shadow: 
+  5px 5px 0 var(--main-color),
+  6px 6px 0 var(--main-color),
+  7px 7px 0 var(--main-color);
 }
 
 .modal-button-container {
