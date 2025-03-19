@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/odometer-theme-default.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
   <script src="js/main.js" defer></script>
+  <script src="js/odometer.js" defer></script>
   <title>Tic Tac Toe</title>
 </head>
 <body>
@@ -29,7 +31,7 @@
       <div class="game-master-container" id="gameMainContainer">
         <div class="score-player-container-one">
           <div class="player-one-name">Player 1</div>
-          <div class="cross-score">Score: 0</div>
+          <div class="cross-score">Score:<div id="odometer-cross" class="odometer">0</div></div>
         </div>
         <div class="cross-left-card">
           <div class="cross" draggable="true">X</div>
@@ -64,7 +66,7 @@
         </div>
         <div class="score-player-container-two">
           <div class="player-two-name">Player 2</div>
-          <div class="circle-score">Score: 0</div>
+          <div class="circle-score">Score:<div id="odometer-circle" class="odometer">0</div></div>
         </div>
         <div class="circle-right-card">
           <div class="circle" draggable="true">O</div>

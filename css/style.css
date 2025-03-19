@@ -190,6 +190,7 @@ footer {
 .cross-score,
 .circle-score {
   font-size: 4rem;
+  padding: 1rem;
 }
 
 .cross-left-card,

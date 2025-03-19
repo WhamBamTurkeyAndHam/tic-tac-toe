@@ -1,16 +1,420 @@
-// Handle Header and Footer Animation.
-document.addEventListener('DOMContentLoaded', function() {
+// Game Board
+let board = [
+  [null, null, null],
+  [null, null, null],
+  [null, null, null]
+];
 
-  // Game Board.
-  let board = [
-    [null, null, null],
-    [null, null, null],
-    [null, null, null]
-  ];
+// Global Variables.
+let crossWin = 0;
+let circleWin = 0;
+let currentPiece = null;
+let currentDragImage = null;
+let pieces = {
+  X: null,
+  O: null
+};
+
+// Function to create drag image.
+function createDragImage(type) {
+  // Remove any existing drag image.
+  removeDragImage();
+  
+  const dragImage = document.createElement('div');
+  dragImage.textContent = type;
+  dragImage.style.fontFamily = '"Permanent Marker", cursive';
+  dragImage.style.fontSize = '7rem';
+  dragImage.style.padding = '1rem';
+  dragImage.style.color = type === 'X' ? 'var(--secondary-color)' : 'var(--tertiary-color)';
+  dragImage.style.webkitTextStroke = '3px black';
+  dragImage.style.position = 'fixed';
+  dragImage.style.pointerEvents = 'none';
+  dragImage.style.zIndex = '9999';
+  dragImage.style.opacity = '0.7';
+  dragImage.style.transform = 'translate(-50%, -50%)';
+  dragImage.id = 'dragImage';
+  
+  document.body.appendChild(dragImage);
+
+  // Store the image dimensions for centering.
+  dragImage.centerX = dragImage.offsetWidth / 2;
+  dragImage.centerY = dragImage.offsetHeight / 2;
+  
+  currentDragImage = dragImage;
+  return dragImage;
+}
+
+// Function to remove the drag image from the DOM.
+function removeDragImage() {
+  if (currentDragImage && document.body.contains(currentDragImage)) {
+    document.body.removeChild(currentDragImage);
+    currentDragImage = null;
+  }
+}
+
+// Handle mouse move during drag.
+function handleMouseMove(e) {
+  // Position the drag image at the mouse cursor using fixed positioning.
+  if (currentDragImage) {
+    currentDragImage.style.left = e.clientX + 'px';
+    currentDragImage.style.top = e.clientY + 'px';
+  }
+
+  // Update cell highlighting based on mouse position.
+  const cellUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+  
+  // Clear all cell highlights first.
+  document.querySelectorAll('.cell').forEach(cell => {
+    if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
+      cell.textContent = '';
+      cell.classList.remove('highlight-cross', 'highlight-circle');
+    }
+  });
+  
+  // If mouse is over a cell, highlight it.
+  if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
+    const row = parseInt(cellUnderMouse.dataset.row);
+    const col = parseInt(cellUnderMouse.dataset.col);
+    
+    if (!board[row][col]) {
+      cellUnderMouse.textContent = currentPiece;
+      cellUnderMouse.classList.add(currentPiece === 'X' ? 'highlight-cross' : 'highlight-circle');
+    }
+  }
+}
+
+// Handle mouse up to complete drag.
+function handleMouseUp(e) {
+  const cellUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+  const crossContainer = document.querySelector('.cross-left-card');
+  const circleContainer = document.querySelector('.circle-right-card');
+  
+  // If dropped on a valid cell, place the piece.
+  if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
+    const row = parseInt(cellUnderMouse.dataset.row);
+    const col = parseInt(cellUnderMouse.dataset.col);
+    
+    if (!board[row][col]) {
+      // Place the piece.
+      cellUnderMouse.textContent = currentPiece;
+      cellUnderMouse.classList.remove('highlight-cross', 'highlight-circle');
+      cellUnderMouse.classList.add(currentPiece === 'X' ? 'x' : 'o');
+      board[row][col] = currentPiece;
+      
+      // Remove a piece from the container.
+      removePiece(currentPiece);
+      
+      // Switch turns.
+      checkTurn(currentPiece === 'X');
+      
+      // Check for game end.
+      checkGame();
+    }
+  }
+  
+  // Clean up all cell highlights.
+  document.querySelectorAll('.cell').forEach(cell => {
+    if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
+      cell.textContent = '';
+      cell.classList.remove('highlight-cross', 'highlight-circle');
+    }
+  });
+  
+  // Remove drag image and clean up.
+  removeDragImage();
+  document.body.classList.remove('dragging');
+  delete document.body.dataset.draggingPiece;
+  currentPiece = null;
+  
+  // Remove event listeners.
+  document.removeEventListener('mousemove', handleMouseMove);
+  document.removeEventListener('mouseup', handleMouseUp);
+}
+
+// Setup piece drag events.
+function setupPieceDragEvents(pieceType) {
+  const elements = pieceType === 'X' ? pieces.X : pieces.O;
+  const crossContainer = document.querySelector('.cross-left-card');
+  const circleContainer = document.querySelector('.circle-right-card');
+  
+  elements.forEach(piece => {
+    piece.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      
+      // Only allow if it's this piece's turn.
+      if ((pieceType === 'X' && crossContainer.classList.contains('disabled')) ||
+          (pieceType === 'O' && circleContainer.classList.contains('disabled'))) {
+        return;
+      }
+      
+      // Set current piece type.
+      currentPiece = pieceType;
+      
+      // Create drag image for ghost effect.
+      const dragImage = createDragImage(pieceType);
+      
+      // Add dragging class to body for cursor changes.
+      document.body.classList.add('dragging');
+      document.body.dataset.draggingPiece = pieceType;
+      
+      // Setup move and up events
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    });
+  });
+}
+
+// Setup game pieces.
+function setupGamePieces() {
+  // Get fresh references to all pieces.
+  pieces = {
+    X: document.querySelectorAll('.cross'),
+    O: document.querySelectorAll('.circle')
+  };
+  
+  // Set up event listeners for both piece types.
+  setupPieceDragEvents('X');
+  setupPieceDragEvents('O');
+}
+
+// Remove piece from container.
+function removePiece(piece) {
+  if (piece === 'X') {
+    const crossCard = document.querySelector('.cross-left-card');
+    const lastCrossPiece = crossCard.querySelector(':last-child');
+    if (lastCrossPiece) {
+      lastCrossPiece.remove();
+    }
+  } else {
+    const circleCard = document.querySelector('.circle-right-card');
+    const lastCirclePiece = circleCard.querySelector(':last-child');
+    if (lastCirclePiece) {
+      lastCirclePiece.remove();
+    }
+  }
+}
+
+// Check whose turn it is.
+function checkTurn(value) {
+  const crossTurn = value === true ? true : false;
 
   const crossContainer = document.querySelector('.cross-left-card');
   const circleContainer = document.querySelector('.circle-right-card');
 
+  if (!crossTurn) {
+    circleContainer.classList.add('disabled');
+    crossContainer.classList.remove('disabled');
+  } else {
+    crossContainer.classList.add('disabled');
+    circleContainer.classList.remove('disabled');
+  }
+}
+
+// Check if line has a winner.
+function checkLine(a, b, c) {
+  if (a !== null && a === b && b === c) {
+    const crossContainer = document.querySelector('.cross-left-card');
+    const circleContainer = document.querySelector('.circle-right-card');
+    
+    crossContainer.classList.add('disabled');
+    circleContainer.classList.add('disabled');
+    showWinnerModal(a);
+    return a;
+  }
+  return null;
+}
+
+// Check game state for win or tie.
+function checkGame() {
+  let winner;
+
+  for (let i = 0; i < 3; i++) {
+    // Check if the board has a match in each row, column, and then diagonal. Otherwise, return false.
+    //
+    // Check Rows.
+    winner = checkLine(board[i][0], board[i][1], board[i][2]);
+    if (winner) return winner;
+    // Check Column.
+    winner = checkLine(board[0][i], board[1][i], board[2][i]);
+    if (winner) return winner;
+  }
+
+  // Check Diagonal.
+  winner = checkLine(board[0][0], board[1][1], board[2][2]);
+  if (winner) return winner;
+  winner = checkLine(board[0][2], board[1][1], board[2][0]);
+  if (winner) return winner;
+
+  // Check for tie (board is full).
+  let isBoardFull = true;
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (board[i][j] === null) {
+        isBoardFull = false;
+        break;
+      }
+    }
+    if (!isBoardFull) break;
+  }
+  
+  if (isBoardFull) {
+    // Handle tie game.
+    const crossContainer = document.querySelector('.cross-left-card');
+    const circleContainer = document.querySelector('.circle-right-card');
+    
+    crossContainer.classList.add('disabled');
+    circleContainer.classList.add('disabled');
+    showWinnerModal('tie');
+    return 'tie';
+  }
+
+  return false;
+}
+
+// Show winner modal.
+function showWinnerModal(winner) {
+  const resultsModal = document.querySelector('.modal-result');
+  const textModal = document.querySelector('.modal-text');
+  const continueButtonModal = document.querySelector('.continue-button-modal');
+
+  resultsModal.style.opacity = '0';
+  resultsModal.showModal();
+
+  void resultsModal.offsetWidth;
+
+  resultsModal.style.opacity = '1';
+  document.body.style.overflow = 'hidden';
+  resultsModal.style.display = 'grid';
+
+  if (winner === 'X') {
+    resultsModal.classList.add('win-x');
+    resultsModal.style.border = 'outset var(--secondary-color) 5px';
+    textModal.textContent = 'X is the Winner.';
+  } else if (winner === 'O') {
+    resultsModal.classList.add('win-o');
+    resultsModal.style.border = 'outset var(--tertiary-color) 5px';
+    textModal.textContent = 'O is the Winner.';
+  } else if (winner === 'tie') {
+    resultsModal.classList.add('tie');
+    resultsModal.style.border = 'outset var(--main-color) 5px';
+    textModal.textContent = 'Tie. No Winner.';
+  }
+
+  continueButtonModal.removeEventListener('click', handleContinueClick);
+  continueButtonModal.addEventListener('click', handleContinueClick);
+}
+
+// Handle continue button click.
+function handleContinueClick() {
+  const resultsModal = document.querySelector('.modal-result');
+  // Get the winner from the modal class.
+  let winner = null;
+  if (resultsModal.classList.contains('win-x')) {
+    winner = 'X';
+  } else if (resultsModal.classList.contains('win-o')) {
+    winner = 'O';
+  }
+  
+  // Remove all winner classes when closing modal.
+  resultsModal.classList.remove('win-x', 'win-o', 'tie');
+  
+  // Reset border style.
+  resultsModal.style.border = '';
+  
+  // Close modal.
+  resultsModal.close();
+  resultsModal.style.opacity = '0';
+  document.body.style.overflow = '';
+  resultsModal.style.display = '';
+  
+  board = [
+    [null, null, null],
+    [null, null, null],
+    [null, null, null]
+  ];
+  
+  document.querySelectorAll('.cell').forEach(cell =>{
+    cell.textContent = '';
+    cell.classList.remove('x', 'o');
+  });
+  const crossCard = document.querySelector('.cross-left-card');
+  const crossCount = crossCard.children.length;
+
+  const circleCard = document.querySelector('.circle-right-card');
+  const circleCount = circleCard.children.length;
+
+  for (let i = crossCount; i < 5; i++) {
+    const cross = document.createElement('div');
+    cross.textContent = 'X';
+    cross.classList.add('cross');
+    cross.setAttribute('draggable', true);
+    crossCard.appendChild(cross);
+  }
+
+  for (let i = circleCount; i < 4; i++) {
+    const circle = document.createElement('div');
+    circle.textContent = 'O';
+    circle.classList.add('circle');
+    circle.setAttribute('draggable', true);
+    circleCard.appendChild(circle);
+  }
+
+  // After creating new pieces.
+  setupGamePieces();
+
+  crossCard.classList.remove('disabled');
+  circleCard.classList.remove('disabled');
+  checkTurn(false);
+  
+  // Pass the correct winner value.
+  if (winner) {
+    scoreGame(winner);
+  }
+}
+
+// Update score.
+function scoreGame(winner) {
+  const crossScore = document.querySelector('#odometer-cross');
+  const circleScore = document.querySelector('#odometer-circle');
+
+  if (winner === 'X') {
+    crossWin++;
+    crossScore.textContent = crossWin;
+  } else if (winner === 'O') {
+    circleWin++;
+    circleScore.textContent = circleWin;
+  }
+}
+
+// Initialize the game when DOM is loaded.
+function initGame() {
+  // Initialize pieces references.
+  pieces = {
+    X: document.querySelectorAll('.cross'),
+    O: document.querySelectorAll('.circle')
+  };
+  
+  // Set up event listeners for both piece types.
+  setupPieceDragEvents('X');
+  setupPieceDragEvents('O');
+  
+  // Initialize game board display.
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    const row = parseInt(cell.dataset.row);
+    const col = parseInt(cell.dataset.col);
+    
+    // Update cell display based on board state.
+    cell.textContent = board[row][col] || '';
+  });
+  
+  // Start with X's turn.
+  checkTurn(false);
+}
+
+// DOM Content Loaded event handler.
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle Header and Footer Animation.
   const waveTextElements = document.querySelectorAll('.wave-text');
 
   waveTextElements.forEach(waveText => {
@@ -36,8 +440,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Set up an interval to restart the animation cycle.
-        // The interval should be slightly longer than the animation duration plus the longest delay.
-        // 1.2s animation + (0.1s * number of letters) for max delay.
         const maxDelay = 0.1 * spans.length;
         const animationDuration = 1.2;
         const totalCycleDuration = (animationDuration + maxDelay) * 1000;
@@ -50,8 +452,8 @@ document.addEventListener('DOMContentLoaded', function() {
             startAnimation();
           }
         }, totalCycleDuration);
-      };
-    };
+      }
+    }
   
     // Mouse enter - start animation cycle.
     waveText.addEventListener('mouseenter', function() {
@@ -69,283 +471,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  let currentPiece = null;
-  let currentDragImage = null;
-  
-  function createDragImage(type) {
-    // Remove any existing drag image.
-    removeDragImage();
-    
-    const dragImage = document.createElement('div');
-    dragImage.textContent = type;
-    dragImage.style.fontFamily = '"Permanent Marker", cursive';
-    dragImage.style.fontSize = '7rem';
-    dragImage.style.padding = '1rem';
-    dragImage.style.color = type === 'X' ? 'var(--secondary-color)' : 'var(--tertiary-color)';
-    dragImage.style.webkitTextStroke = '3px black';
-    dragImage.style.position = 'fixed';
-    dragImage.style.pointerEvents = 'none';
-    dragImage.style.zIndex = '9999';
-    dragImage.style.opacity = '0.7';
-    dragImage.style.transform = 'translate(-50%, -50%)';
-    dragImage.id = 'dragImage';
-    
-    document.body.appendChild(dragImage);
-
-    // Store the image dimensions for centering.
-    dragImage.centerX = dragImage.offsetWidth / 2;
-    dragImage.centerY = dragImage.offsetHeight / 2;
-    
-    currentDragImage = dragImage;
-    return dragImage;
-  };
-  
-  // Function to remove the drag image from the DOM.
-  function removeDragImage() {
-    if (currentDragImage && document.body.contains(currentDragImage)) {
-      document.body.removeChild(currentDragImage);
-      currentDragImage = null;
-    }
-  };
-  
-  // Setup pieces with click to select rather than drag.
-  const pieces = {
-    X: document.querySelectorAll('.cross'),
-    O: document.querySelectorAll('.circle')
-  };
-  
-  // Simplified drag handling - use mousedown/mousemove events.
-  function setupPieceDragEvents(pieceType) {
-    const elements = pieceType === 'X' ? pieces.X : pieces.O;
-    
-    elements.forEach(piece => {
-      piece.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        
-        // Only allow if it's this piece's turn.
-        if ((pieceType === 'X' && crossContainer.classList.contains('disabled')) ||
-            (pieceType === 'O' && circleContainer.classList.contains('disabled'))) {
-          return;
-        }
-        
-        // Set current piece type.
-        currentPiece = pieceType;
-        
-        // Create drag image for ghost effect.
-        const dragImage = createDragImage(pieceType);
-        
-        // Add dragging class to body for cursor changes.
-        document.body.classList.add('dragging');
-        document.body.dataset.draggingPiece = pieceType;
-        
-        // Setup move and up events
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-      });
-    });
-  };
-  
-  // Handle mouse move during drag.
-  function handleMouseMove(e) {
-    // Position the drag image at the mouse cursor using fixed positioning.
-    if (currentDragImage) {
-      currentDragImage.style.left = e.clientX + 'px';
-      currentDragImage.style.top = e.clientY + 'px';
-    }
-
-    // Update cell highlighting based on mouse position.
-    const cellUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
-    
-    // Clear all cell highlights first.
-    document.querySelectorAll('.cell').forEach(cell => {
-      if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
-        cell.textContent = '';
-        cell.classList.remove('highlight-cross', 'highlight-circle');
-      }
-    });
-    
-    // If mouse is over a cell, highlight it.
-    if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
-      const row = parseInt(cellUnderMouse.dataset.row);
-      const col = parseInt(cellUnderMouse.dataset.col);
-      
-      if (!board[row][col]) {
-        cellUnderMouse.textContent = currentPiece;
-        cellUnderMouse.classList.add(currentPiece === 'X' ? 'highlight-cross' : 'highlight-circle');
-      }
-    }
-  }
-  
-  // Handle mouse up to complete drag.
-  function handleMouseUp(e) {
-    const cellUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
-    
-    // If dropped on a valid cell, place the piece.
-    if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
-      const row = parseInt(cellUnderMouse.dataset.row);
-      const col = parseInt(cellUnderMouse.dataset.col);
-      
-      if (!board[row][col]) {
-        // Place the piece.
-        cellUnderMouse.textContent = currentPiece;
-        cellUnderMouse.classList.remove('highlight-cross', 'highlight-circle');
-        cellUnderMouse.classList.add(currentPiece === 'X' ? 'x' : 'o');
-        board[row][col] = currentPiece;
-        
-        // Remove a piece from the container.
-        removePiece(currentPiece);
-        
-        // Switch turns.
-        checkTurn(currentPiece === 'X');
-        
-        // Check for game end.
-        checkGame();
-      }
-    }
-    
-    // Clean up all cell highlights.
-    document.querySelectorAll('.cell').forEach(cell => {
-      if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
-        cell.textContent = '';
-        cell.classList.remove('highlight-cross', 'highlight-circle');
-      }
-    });
-    
-    // Remove drag image and clean up.
-    removeDragImage();
-    document.body.classList.remove('dragging');
-    delete document.body.dataset.draggingPiece;
-    currentPiece = null;
-    
-    // Remove event listeners.
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-  
-  // Setup both piece types.
-  setupPieceDragEvents('X');
-  setupPieceDragEvents('O');
-  
-  // Initialize game board display.
-  const cells = document.querySelectorAll('.cell');
-  cells.forEach(cell => {
-    const row = parseInt(cell.dataset.row);
-    const col = parseInt(cell.dataset.col);
-    
-    // Update cell display based on board state.
-    cell.textContent = board[row][col] || '';
-  });
-
-  function checkTurn(value) {
-    // crossContainer = document.querySelector('.cross-left-card');
-    // circleContainer = document.querySelector('.circle-right-card');
-    const crossTurn = value === true ? false : true;
-  
-    if (crossTurn) {
-      circleContainer.classList.add('disabled');
-      crossContainer.classList.remove('disabled');
-    } else {
-      crossContainer.classList.add('disabled');
-      circleContainer.classList.remove('disabled');
-    }
-  };
-
-  checkTurn(false); // Temporary so that X can go first.
-
-  function checkLine(a, b, c) {
-    if (a !== null && a === b && b === c) {
-      crossContainer.classList.add('disabled');
-      circleContainer.classList.add('disabled');
-      showWinnerModal(a);
-      return a;
-    };
-    return null;
-  };
-  
-  function checkGame() {
-    let winner;
-  
-    for (let i = 0; i < 3; i++) {
-      // Check if the board has a match in each row, column, and then diagonal. Otherwise, return false.
-      //
-      // Check Rows.
-      winner = checkLine(board[i][0], board[i][1], board[i][2]);
-      if (winner) return winner;
-      // Check Column.
-      winner = checkLine(board[0][i], board[1][i], board[2][i]);
-      if (winner) return winner;
-    };
-  
-    // Check Diagonal.
-    winner = checkLine(board[0][0], board[1][1], board[2][2]);
-    if (winner) return winner;
-    winner = checkLine(board[0][2], board[1][1], board[2][0]);
-    if (winner) return winner;
-
-    // Check for tie (board is full).
-    let isBoardFull = true;
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        if (board[i][j] === null) {
-          isBoardFull = false;
-          break;
-        }
-      };
-      if (!isBoardFull) break;
-    };
-    
-    if (isBoardFull) {
-      // Handle tie game.
-      crossContainer.classList.add('disabled');
-      circleContainer.classList.add('disabled');
-      showWinnerModal('tie');
-      return 'tie';
-    };
-  
-    return false;
-  };
+  // Initialize the game.
+  initGame();
 });
-
-function removePiece(piece) {
-  if (piece === 'X') {
-    const crossCard = document.querySelector('.cross-left-card');
-    const lastCrossPiece = crossCard.querySelector(':last-child');
-    if (lastCrossPiece) {
-      lastCrossPiece.remove();
-    }
-  } else {
-    const circleCard = document.querySelector('.circle-right-card');
-    const lastCirclePiece = circleCard.querySelector(':last-child');
-    if (lastCirclePiece) {
-      lastCirclePiece.remove();
-    }
-  }
-};
-
-function showWinnerModal(winner) {
-  const resultsModal = document.querySelector('.modal-result');
-  const textModal = document.querySelector('.modal-text');
-
-  resultsModal.style.opacity = '0';
-  resultsModal.showModal();
-
-  void resultsModal.offsetWidth;
-
-  resultsModal.style.opacity = '1';
-  document.body.style.overflow = 'hidden';
-  resultsModal.style.display = 'grid';
-
-  if (winner === 'X') {
-    resultsModal.classList.add('win-x');
-    resultsModal.style.border = 'outset var(--secondary-color) 5px';
-    textModal.textContent = 'X is the Winner.';
-  } else if (winner === 'O') {
-    resultsModal.classList.add('win-o');
-    resultsModal.style.border = 'outset var(--tertiary-color) 5px';
-    textModal.textContent = 'O is the Winner.';
-  } else if (winner === 'tie') {
-    resultsModal.classList.add('tie');
-    resultsModal.style.border = 'outset var(--main-color) 5px';
-    textModal.textContent = 'Tie. No Winner.';
-  }
-};
