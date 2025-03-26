@@ -41,27 +41,25 @@ footer {
 /* Text Shadowing */
 .text-green,
 .cross-score,
-.player-one-name {
+.player-one-modal-name {
   text-shadow: 
-  5px 5px 0 var(--secondary-color),
-  6px 6px 0 var(--secondary-color),
-  7px 7px 0 var(--secondary-color);
+  5px 5px 0 var(--secondary-color);
 }
 
-.text-orange {
+.text-orange,
+.round-text,
+.round-container,
+.rounds-modal {
   text-shadow: 
-  5px 5px 0 var(--main-color),
-  6px 6px 0 var(--main-color),
-  7px 7px 0 var(--main-color);
+  5px 5px 0 var(--main-color);
 }
 
 .text-purple,
 .circle-score,
-.player-two-name {
+.player-two-name,
+.player-two-modal-name {
   text-shadow: 
-  5px 5px 0 var(--tertiary-color),
-  6px 6px 0 var(--tertiary-color),
-  7px 7px 0 var(--tertiary-color);
+  5px 5px 0 var(--tertiary-color);
 }
 
 /* Game container */
@@ -90,7 +88,8 @@ footer {
 .circle-right-card,
 .score-player-container-one,
 .score-player-container-two,
-.button-container {
+.button-container,
+.round-master-container {
   height: 100%;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 16px;
@@ -165,6 +164,19 @@ footer {
   background-color: red;
 }
 
+.round-master-container {
+  grid-area: 2 / 2 / 3 / 5;
+  font-size: 5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.round-container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
 .score-player-container-one,
 .score-player-container-two {
   padding: 1rem;
@@ -173,24 +185,37 @@ footer {
 }
 
 .score-player-container-one {
-  grid-area: 1 / 1 / 2 / 2;
+  grid-area: 2 / 1 / 3 / 2;
 }
 
 .score-player-container-two {
-  grid-area: 1 / 5 / 2 / 6;
+  grid-area: 2 / 5 / 3 / 6;
 }
 
 .player-one-name,
 .player-two-name {
-  font-size: 3rem;
+  font-size: 4rem;
   display: flex;
   justify-content: center;
+}
+
+.player-one-name {
+  text-shadow: 
+  5px 5px 0 var(--secondary-color);
+}
+
+.player-two-name {
+  text-shadow: 
+  5px 5px 0 var(--tertiary-color);
 }
 
 .cross-score,
 .circle-score {
   font-size: 4rem;
   padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cross-left-card,
@@ -201,17 +226,17 @@ footer {
 }
 
 .cross-left-card {
-  grid-area: 2 / 1 / 3 / 2;
+  grid-area: 3 / 1 / 4 / 2;
   transition: all 0.5s ease-in-out;
 }
 
 .game-main-card {
-  grid-area: 2 / 2 / 2 / 5;
+  grid-area: 3 / 2 / 4 / 5;
   width: 100%;
 }
 
 .circle-right-card {
-  grid-area: 2 / 5 / 3 / 6;
+  grid-area: 3 / 5 / 4 / 6;
   transition: all 0.5s ease-in-out;
 }
 
@@ -296,25 +321,74 @@ footer {
 /* Modal */
 dialog {
   margin: auto auto;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out,
+              transform 0.5s ease-in-out;
 }
 
 dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-.modal-result {
-  padding: 2rem;
+dialog[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+dialog.fade-out {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.modal-result,
+.modal-init-game {
+  padding: 0.5rem;
   font-size: 3rem;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   backdrop-filter: blur(7px);
   outline: none;
   gap: 1.5rem;
-  transition: opacity 0.5s ease;
+  border: none;
 }
 
-.modal-result[open] {
-  opacity: 1;
+.modal-init-game form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 1rem;
+  font-size: 4rem;
+}
+
+.modal-init-gradient {
+  border-radius: 15px;
+  border: 6px solid transparent;
+  /* If browser can't support it */
+  background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)) padding-box,
+              linear-gradient(to right, var(--secondary-color) 0, var(--main-color) 35%, 
+              var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%) border-box;
+  /* If browser can support it */
+  background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)) padding-box,
+              linear-gradient(to right in oklch, var(--secondary-color) 0, var(--main-color) 35%, 
+              var(--main-color) 50%, var(--main-color) 65%, var(--tertiary-color) 100%) border-box;
+}
+
+.modal-init-game input {
+  font-size: 2rem;
+  padding: 1rem;
+  border-radius: 15px;
+}
+
+.modal-init-game input[type = number] {
+  width: 25%;
+  text-align: center;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .win-x {
@@ -346,11 +420,12 @@ dialog::backdrop {
 }
 
 .reset-button-modal,
-.continue-button-modal {
+.continue-button-modal,
+.submit-btn {
   padding: 1rem;
   border-radius: 15px;
   font-size: 2rem;
-  border: none;
+  border: white solid 2px;
   background-color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: all 0.2s;
@@ -358,23 +433,27 @@ dialog::backdrop {
 }
 
 .reset-button-modal:hover,
-.continue-button-modal:hover {
+.continue-button-modal:hover,
+.submit-btn:hover {
   transform: scale(1.1);
   transition: all 0.25s;
   color: white;
   -webkit-text-stroke: 1.5px black;
+  border: black solid 2px;
 }
 
 .reset-button-modal:hover {
   background-color: red;
 }
 
-.continue-button-modal:hover {
+.continue-button-modal:hover,
+.submit-btn:hover {
   background-color: var(--main-color);
 }
 
 .reset-button-modal:active,
-.continue-button-modal:active {
+.continue-button-modal:active,
+.submit-btn:active {
   transform: scale(0.95);
 }
 

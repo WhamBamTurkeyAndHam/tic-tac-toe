@@ -49,7 +49,14 @@
           <div class="reset-button-container">
             <button type="button" class="reset-button">Reset</button>
           </div>
-  
+        </div>
+        <div class="round-master-container">
+          <div class="round-text">Round:</div>
+          <div class="round-container">
+            <div class="round-counter-amount"><div id="odometer-round" class="odometer">1</div></div>
+            <div class="round-divider">/</div>
+            <div class="round-max-amount">?</div>
+          </div>
         </div>
         <div class="game-main-card">
           <div id="game-board">
@@ -81,6 +88,19 @@
       <div class="modal-button-container">
         <button type="button" class="reset-button-modal">Reset</button>
         <button type="button" class="continue-button-modal">Continue</button>
+      </div>
+    </dialog>
+    <dialog class="modal-init-game">
+      <div class="modal-init-gradient">
+        <form action="#">
+          <label for="name" class="player-one-modal-name">Player One</label>
+          <input type="text" id="player-1" placeholder="Enter Name" autocomplete="off" maxlength="25" required>
+          <label for="name" class="player-two-modal-name">Player Two</label>
+          <input type="text" id="player-2" placeholder="Enter Name" autocomplete="off" maxlength="25" required>
+          <label for="rounds" class="rounds-modal">How Many Rounds?</label>
+          <input type="number" min="1" max="10" id="rounds" placeholder="1 - 10" autocomplete="off" required>
+          <input type="submit" name="submit-btn" id="submit-btn" class="submit-btn">
+        </form>
       </div>
     </dialog>
     <footer>

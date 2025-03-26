@@ -8,6 +8,7 @@ let board = [
 // Global Variables.
 let crossWin = 0;
 let circleWin = 0;
+let roundCounter = 0;
 let currentPiece = null;
 let currentDragImage = null;
 let pieces = {
@@ -279,6 +280,7 @@ function showWinnerModal(winner) {
 
   resultsModal.style.opacity = '0';
   resultsModal.showModal();
+  resultsModal.classList.remove('fade-out');
 
   void resultsModal.offsetWidth;
 
@@ -302,31 +304,38 @@ function showWinnerModal(winner) {
 
   continueButtonModal.removeEventListener('click', handleContinueClick);
   continueButtonModal.addEventListener('click', handleContinueClick);
-}
 
-// Handle continue button click.
-function handleContinueClick() {
-  const resultsModal = document.querySelector('.modal-result');
-  // Get the winner from the modal class.
-  let winner = null;
-  if (resultsModal.classList.contains('win-x')) {
-    winner = 'X';
-  } else if (resultsModal.classList.contains('win-o')) {
-    winner = 'O';
+  // Handle continue button click.
+  function handleContinueClick(e) {
+    e.preventDefault();
+
+    const resultsModal = document.querySelector('.modal-result');
+
+    // Get the winner from the modal class.
+    let winner = null;
+    if (resultsModal.classList.contains('win-x')) {
+      winner = 'X';
+    } else if (resultsModal.classList.contains('win-o')) {
+      winner = 'O';
+    }
+
+    // Remove all winner classes when closing modal.
+    resultsModal.classList.remove('win-x', 'win-o', 'tie');
+
+    // Add fade out class.
+    resultsModal.classList.add('fade-out');
+
+    // After fade out transition completes.
+    resultsModal.addEventListener('transitionend', () => {
+        // Hide visibility and close dialog
+        resultsModal.close();
+        // Reset styles and cleanup
+        resultsModal.style.border = '';
+        resultsModal.style.display = '';
+        document.body.style.overflow = '';
+    }, { once: true });
   }
-  
-  // Remove all winner classes when closing modal.
-  resultsModal.classList.remove('win-x', 'win-o', 'tie');
-  
-  // Reset border style.
-  resultsModal.style.border = '';
-  
-  // Close modal.
-  resultsModal.close();
-  resultsModal.style.opacity = '0';
-  document.body.style.overflow = '';
-  resultsModal.style.display = '';
-  
+
   board = [
     [null, null, null],
     [null, null, null],
@@ -337,6 +346,7 @@ function handleContinueClick() {
     cell.textContent = '';
     cell.classList.remove('x', 'o');
   });
+
   const crossCard = document.querySelector('.cross-left-card');
   const crossCount = crossCard.children.length;
 
@@ -369,6 +379,8 @@ function handleContinueClick() {
   // Pass the correct winner value.
   if (winner) {
     scoreGame(winner);
+    // Check Round.
+    checkRound();
   }
 }
 
@@ -410,6 +422,76 @@ function initGame() {
   
   // Start with X's turn.
   checkTurn(false);
+}
+
+function showInitModal() {
+  const initGameModal = document.querySelector('.modal-init-game');
+  const submitButton = document.querySelector('.submit-btn');
+  
+  document.body.style.overflow = 'hidden';
+  initGameModal.showModal();
+
+  submitButton.removeEventListener('click', handleSumbit);
+  submitButton.addEventListener('click', handleSumbit);
+
+  function handleSumbit(e) {
+    e.preventDefault();
+
+    player1 = document.querySelector('#player-1').value;
+    player2 = document.querySelector('#player-2').value;
+    maxRounds = document.querySelector('#rounds').value;
+
+    player1Name = document.querySelector('.player-one-name');
+    player1Name.textContent = player1;
+
+    player2Name = document.querySelector('.player-two-name');
+    player2Name.textContent = player2;
+
+    maxRoundsAmount = document.querySelector('.round-max-amount');
+    maxRoundsAmount.textContent = maxRounds;
+
+    checkFontSize(player1Name);
+    checkFontSize(player2Name);
+
+    // Add fade out class.
+    initGameModal.classList.add('fade-out');
+
+    // After fade out transition completes.
+    initGameModal.addEventListener('transitionend', () => {
+      // Hide visibility and close dialog
+      initGameModal.close();
+      // Allow scrolling.
+      document.body.style.overflow = '';
+      initGameModal.classList.remove('fade-out');
+      
+      checkRound(maxRounds);
+      initGame();
+    }, { once: true });
+  };
+}
+
+function checkFontSize(player) {
+  if (player.textContent.length >= 10 && player.textContent.length < 15) {
+    player.style.fontSize = '3rem';
+    player.style.textShadow = player === player1Name ? '4px 4px 0 var(--secondary-color)' : '3px 3px 0 var(--tertiary-color)';
+  } else if (player.textContent.length >= 15 && player.textContent.length <= 20) {
+    player.style.fontSize = '2rem';
+    player.style.textShadow = player === player1Name ? '3px 3px 0 var(--secondary-color)' : '3px 3px 0 var(--tertiary-color)';
+  } else if (player.textContent.length > 20) {
+    player.style.fontSize = '1.5rem';
+    player.style.textShadow = player === player1Name ? '2px 2px 0 var(--secondary-color)' : '2px 2px 0 var(--tertiary-color)';
+  }
+}
+
+function checkRound(roundAmount) {
+  const roundCounterAmount = document.querySelector('#odometer-round');
+
+  setTimeout(() => {
+    roundCounter++;
+    roundCounterAmount.textContent = roundCounter;
+  }, 500);
+
+  if (roundCounter > roundAmount) return announceWinner();
 }
 
 // DOM Content Loaded event handler.
@@ -471,6 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  showInitModal();
   // Initialize the game.
   initGame();
 });
