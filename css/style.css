@@ -162,6 +162,23 @@ footer {
   background-color: var(--tertiary-color);
 }
 
+.active-difficulty {
+  color: white;
+  -webkit-text-stroke: 1.5px black;
+}
+
+.easy.active-difficulty {
+  background-color: var(--secondary-color);
+}
+
+.medium.active-difficulty {
+  background-color: var(--main-color);
+}
+
+.hard.active-difficulty {
+  background-color: var(--tertiary-color);
+}
+
 .reset-button:hover {
   background-color: red;
 }

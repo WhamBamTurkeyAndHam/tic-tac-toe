@@ -601,11 +601,41 @@ function aiMove(playerAI) {
     }
   };
 
-  // If all else fails in making a strategic move, choose a random empty cell.
-  if (emptyCells.length > 0) {
-    const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  // What the A.I will do between a selection of Easy, Medium or Hard.
+  function chooseRandomCell(cells) {
+    const [row, col] = cells[Math.floor(Math.random() * cells.length)];
     return makeMove(row, col);
+  }
+
+  // Function to choose a move based on difficulty.
+  function chooseDifficulty() {
+    if (emptyCells.length > 0) {
+      // (Easy) If all else fails in making a strategic move, choose a random empty cell.
+      if (aiDifficulty === 'easy') {
+        console.log('Easy');
+        return chooseRandomCell(emptyCells);
+      }
+  
+      // (Medium) Use Easy and Try to take corners.
+      const corners = [[0, 0], [0, 2], [2, 0], [2, 2]];
+      const availableCorners = corners.filter(([row, col]) => board[row][col] === null);
+  
+      if (aiDifficulty === 'medium') {
+        console.log('Medium');
+        return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
+      }
+  
+      // (Hard) Use Easy and Medium and Try to take the center.
+      if (aiDifficulty === 'hard') {
+        console.log('Hard');
+        if (board[1][1] === null) return makeMove(1, 1);
+        return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
+      }
+    };
   };
+
+  // Call the difficulty selection method.
+  return chooseDifficulty();
 
   // Function to help the A.I make moves.
   function makeMove(row, col) {
@@ -623,6 +653,37 @@ function aiMove(playerAI) {
     
     // Check for game end.
     checkGame();
+  };
+}
+
+// Setup difficulty selection event listeners.
+function setupDifficultySelection() {
+  const easyButton = document.querySelector('.easy');
+  const mediumButton = document.querySelector('.medium');
+  const hardButton = document.querySelector('.hard');
+
+  // Remove previous event listeners to prevent multiple bindings.
+  easyButton.removeEventListener('click', setDifficulty);
+  mediumButton.removeEventListener('click', setDifficulty);
+  hardButton.removeEventListener('click', setDifficulty);
+
+  // Add new event listeners
+  easyButton.addEventListener('click', setDifficulty);
+  mediumButton.addEventListener('click', setDifficulty);
+  hardButton.addEventListener('click', setDifficulty);
+
+  function setDifficulty(event) {
+    // Remove active class from all buttons.
+    [easyButton, mediumButton, hardButton].forEach(btn => 
+      btn.classList.remove('active-difficulty')
+    );
+
+    // Add active class to clicked button.
+    event.target.classList.add('active-difficulty');
+
+    // Set the difficulty based on clicked button.
+    aiDifficulty = event.target.classList.contains('easy') ? 'easy' :
+                  event.target.classList.contains('medium') ? 'medium' : 'hard';
   };
 }
 
@@ -684,6 +745,9 @@ document.addEventListener('DOMContentLoaded', function() {
       animationInterval = null;
     });
   });
+
+  // Add difficulty selection setup
+  setupDifficultySelection();
 
   // Check A.I status.
   checkAI();
