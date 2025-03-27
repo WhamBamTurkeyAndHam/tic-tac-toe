@@ -87,8 +87,6 @@ function handleMouseMove(e) {
 // Handle mouse up to complete drag.
 function handleMouseUp(e) {
   const cellUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
-  const crossContainer = document.querySelector('.cross-left-card');
-  const circleContainer = document.querySelector('.circle-right-card');
   
   // If dropped on a valid cell, place the piece.
   if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
@@ -491,7 +489,141 @@ function checkRound(roundAmount) {
     roundCounterAmount.textContent = roundCounter;
   }, 500);
 
-  if (roundCounter > roundAmount) return announceWinner();
+  if (roundCounter > roundAmount) return announceWinner(); // Add later.
+}
+
+function checkAI() {
+  const player1AI = document.querySelector('#checkbox-player-1');
+  const player2AI = document.querySelector('#checkbox-player-2');
+  const player1Input = document.querySelector('#player-1');
+  const player2Input = document.querySelector('#player-2');
+
+  player1AI.addEventListener('change', () => {
+    if (player1AI.checked) {
+      player2AI.checked = false;
+    }
+    checkSwitch();
+  });
+
+  player2AI.addEventListener('change', () => {
+    if (player2AI.checked) {
+      player1AI.checked = false;
+    }
+    checkSwitch();
+  });
+
+  function checkSwitch() {
+    if (!player1AI.checked && !player2AI.checked) {
+      // If both are unchecked, reset to default.
+      player1Input.placeholder = "Enter Your Name";
+      player2Input.placeholder = "Enter Your Name";
+    } else {
+      // Update based on which AI checkbox is checked.
+      player1Input.placeholder = player1AI.checked ? "Enter A.I's Name" : "Enter Your Name";
+      player2Input.placeholder = player2AI.checked ? "Enter A.I's Name" : "Enter Your Name";
+    }
+  }
+
+  // After game initialization, check if AI should move
+  function checkAIMove() {
+    const crossContainer = document.querySelector('.cross-left-card');
+    const circleContainer = document.querySelector('.circle-right-card');
+
+    let aiPlayer = null;
+    if (player1AI.checked) {
+      aiPlayer = 'X';
+    } else if (player2AI.checked) {
+      aiPlayer = 'O';
+    }
+
+    if (aiPlayer && 
+    (aiPlayer === 'X' && !crossContainer.classList.contains('disabled') || 
+    (aiPlayer === 'O' && !circleContainer.classList.contains('disabled')))) {
+      // Add a slight delay so the AI looks like it is 'thinking'.
+      setTimeout(() => {
+        aiMove(aiPlayer);
+      }, 750);
+    };
+  };
+
+  // Modify the existing checkTurn function to call checkAITurn
+  const originalCheckTurn = checkTurn;
+  checkTurn = function(value) {
+    originalCheckTurn(value);
+    checkAIMove();
+  };
+}
+
+function aiMove(playerAI) {
+  const aiPiece = playerAI === 'X' ? 'X' : 'O';
+  const humanPiece = aiPiece === 'X' ? 'X' : 'O';
+
+  function wouldBeWin(row, col, piece) {
+    // Save winning information inside array for A.I to use.
+    const winningLines = [
+      // Rows.
+      [[row, 0], [row, 1], [row, 2]],
+      // Columns.
+      [[0, col], [1, col], [col, 2]],
+      // Both diagonal options.
+      [[0, 0], [1, 1], [2, 2]],
+      [[0, 2], [1, 1], [2, 0]]
+    ];
+
+    const win = winningLines.some(line => {
+      return line.every(([row, col]) => board[row][col] === piece);
+    });
+
+    return win;
+  };
+
+  // Firstly find every empty cell.
+  const emptyCells = [];
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (board[i][j] === null) {
+        emptyCells.push([i, j]);
+      }
+    };
+  };
+
+  // Secondly try to win.
+  for (const [row, col] of emptyCells) {
+    if (wouldBeWin(row, col, aiPiece)) {
+      return makeMove(row, col);
+    }
+  };
+
+  // Then, try block the player from winning.
+  for (const [row, col] of emptyCells) {
+    if (wouldBeWin(row, col, humanPiece)) {
+      return makeMove(row, col);
+    }
+  };
+
+  // If all else fails in making a strategic move, choose a random empty cell.
+  if (emptyCells.length > 0) {
+    const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    return makeMove(row, col);
+  };
+
+  // Function to help the A.I make moves.
+  function makeMove(row, col) {
+    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)
+
+    cell.textContent = aiPiece;
+    cell.classList.add(aiPiece === 'X' ? 'x' : 'o');
+    board[row][col] = aiPiece;
+
+    // Remove a piece from the container.
+    removePiece(currentPiece);
+
+    // Switch turns.
+    checkTurn(currentPiece === 'X');
+    
+    // Check for game end.
+    checkGame();
+  };
 }
 
 // DOM Content Loaded event handler.
@@ -553,7 +685,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Check A.I status.
+  checkAI();
+  
+  // Show Modal at start.
   showInitModal();
+  
   // Initialize the game.
   initGame();
 });

@@ -1,4 +1,5 @@
 odometer By: https://github.hubspot.com/odometer/docs/welcome/
+Switch Toggle By: https://uiverse.io/vinodjangid07/quick-moth-22
 
 Additionally at this point, my JS file in this commit may look like a whole lot was deleted and then added,
 but this is mostly the same stuff. I kept having issues because much of what I did was happening in DOMContentLoaded
