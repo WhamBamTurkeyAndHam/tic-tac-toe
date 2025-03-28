@@ -11,6 +11,7 @@ let circleWin = 0;
 let roundCounter = 0;
 let currentPiece = null;
 let currentDragImage = null;
+let aiDifficulty = 'medium';
 let pieces = {
   X: null,
   O: null
