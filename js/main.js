@@ -9,6 +9,7 @@ let board = [
 let crossWin = 0;
 let circleWin = 0;
 let roundCounter = 0;
+let maxRounds = 0;
 let currentPiece = null;
 let currentDragImage = null;
 let aiDifficulty = 'medium';
@@ -16,6 +17,12 @@ let pieces = {
   X: null,
   O: null
 };
+let player1Name;
+let player2Name;
+let player1;
+let player2;
+let player1IsAI = false; // Added to track AI state.
+let player2IsAI = false; // Added to track AI state.
 
 // Function to create drag image.
 function createDragImage(type) {
@@ -51,7 +58,7 @@ function removeDragImage() {
   if (currentDragImage && document.body.contains(currentDragImage)) {
     document.body.removeChild(currentDragImage);
     currentDragImage = null;
-  }
+  };
 }
 
 // Handle mouse move during drag.
@@ -82,7 +89,7 @@ function handleMouseMove(e) {
       cellUnderMouse.textContent = currentPiece;
       cellUnderMouse.classList.add(currentPiece === 'X' ? 'highlight-cross' : 'highlight-circle');
     }
-  }
+  };
 }
 
 // Handle mouse up to complete drag.
@@ -108,8 +115,13 @@ function handleMouseUp(e) {
       checkTurn(currentPiece === 'X');
       
       // Check for game end.
-      checkGame();
-    }
+      const gameResult = checkGame();
+      
+      // If game is not over, check if AI should move next.
+      if (!gameResult) {
+        checkAIMove(); // Check if AI should move after player's turn.
+      }
+    };
   }
   
   // Clean up all cell highlights.
@@ -181,13 +193,13 @@ function setupGamePieces() {
 function removePiece(piece) {
   if (piece === 'X') {
     const crossCard = document.querySelector('.cross-left-card');
-    const lastCrossPiece = crossCard.querySelector(':last-child');
+    const lastCrossPiece = crossCard.querySelector('.cross:last-child');
     if (lastCrossPiece) {
       lastCrossPiece.remove();
     }
   } else {
     const circleCard = document.querySelector('.circle-right-card');
-    const lastCirclePiece = circleCard.querySelector(':last-child');
+    const lastCirclePiece = circleCard.querySelector('.circle:last-child');
     if (lastCirclePiece) {
       lastCirclePiece.remove();
     }
@@ -311,7 +323,6 @@ function showWinnerModal(winner) {
     const resultsModal = document.querySelector('.modal-result');
 
     // Get the winner from the modal class.
-    let winner = null;
     if (resultsModal.classList.contains('win-x')) {
       winner = 'X';
     } else if (resultsModal.classList.contains('win-o')) {
@@ -324,33 +335,59 @@ function showWinnerModal(winner) {
     // Add fade out class.
     resultsModal.classList.add('fade-out');
 
-    // After fade out transition completes.
-    resultsModal.addEventListener('transitionend', () => {
-        // Hide visibility and close dialog
+    // Remove any existing transitionend listeners first
+    const existingHandlers = resultsModal._transitionHandlers || [];
+    existingHandlers.forEach(handler => {
+      resultsModal.removeEventListener('transitionend', handler);
+    });
+
+    // Create a new handler
+    const transitionEndHandler = (e) => {
+      // Only process the opacity transition if multiple properties are transitioning.
+      if (e.propertyName === 'opacity' || e.propertyName === 'transform') {
+        // Hide visibility and close dialog.
         resultsModal.close();
-        // Reset styles and cleanup
+        // Reset styles and cleanup.
         resultsModal.style.border = '';
         resultsModal.style.display = '';
         document.body.style.overflow = '';
-    }, { once: true });
-  }
+      // Score the game before resetting the board.
+        if (winner) {
+          scoreGame(winner);
+          checkRound();
+        }
+      };
+    }
 
+    // Store the handler for potential future removal.
+    resultsModal._transitionHandlers = [transitionEndHandler];
+    
+    // Add the event listener with once: true.
+    resultsModal.addEventListener('transitionend', transitionEndHandler, { once: true })
+  };
+
+  // Reset the board.
+  resetBoard();
+}
+
+// Reset the game board for a new round.
+function resetBoard() {
   board = [
     [null, null, null],
     [null, null, null],
     [null, null, null]
   ];
   
-  document.querySelectorAll('.cell').forEach(cell =>{
+  document.querySelectorAll('.cell').forEach(cell => {
     cell.textContent = '';
     cell.classList.remove('x', 'o');
   });
 
   const crossCard = document.querySelector('.cross-left-card');
-  const crossCount = crossCard.children.length;
+  const crossCount = crossCard.querySelectorAll('.cross').length;
 
   const circleCard = document.querySelector('.circle-right-card');
-  const circleCount = circleCard.children.length;
+  const circleCount = circleCard.querySelectorAll('.circle').length;
 
   for (let i = crossCount; i < 5; i++) {
     const cross = document.createElement('div');
@@ -372,15 +409,12 @@ function showWinnerModal(winner) {
   setupGamePieces();
 
   crossCard.classList.remove('disabled');
-  circleCard.classList.remove('disabled');
-  checkTurn(false);
+  circleCard.classList.add('disabled');  // X always goes first.
   
-  // Pass the correct winner value.
-  if (winner) {
-    scoreGame(winner);
-    // Check Round.
-    checkRound();
-  }
+  // Check if AI should make a move (for X).
+  setTimeout(() => {
+    checkAIMove();
+  }, 500);
 }
 
 // Update score.
@@ -421,14 +455,54 @@ function initGame() {
   
   // Start with X's turn.
   checkTurn(false);
+  
+  // Check AI setup and move if needed.
+  setTimeout(() => {
+    checkAIMove();
+  }, 500);
 }
 
 function showInitModal() {
   const initGameModal = document.querySelector('.modal-init-game');
   const submitButton = document.querySelector('.submit-btn');
+  const player1AI = document.querySelector('#checkbox-player-1');
+  const player2AI = document.querySelector('#checkbox-player-2');
+  
+  // Initialize checkbox states.
+  player1IsAI = false;
+  player2IsAI = false;
+  player1AI.checked = false;
+  player2AI.checked = false;
   
   document.body.style.overflow = 'hidden';
   initGameModal.showModal();
+
+  // Set up AI checkbox event listeners.
+  player1AI.addEventListener('change', () => {
+    player1IsAI = player1AI.checked;
+    if (player1IsAI) {
+      player2AI.checked = false;
+      player2IsAI = false;
+    }
+    updatePlayerPlaceholders();
+  });
+
+  player2AI.addEventListener('change', () => {
+    player2IsAI = player2AI.checked;
+    if (player2IsAI) {
+      player1AI.checked = false;
+      player1IsAI = false;
+    }
+    updatePlayerPlaceholders();
+  });
+
+  function updatePlayerPlaceholders() {
+    const player1Input = document.querySelector('#player-1');
+    const player2Input = document.querySelector('#player-2');
+    
+    player1Input.placeholder = player1AI.checked ? "Enter A.I's Name" : "Enter Your Name";
+    player2Input.placeholder = player2AI.checked ? "Enter A.I's Name" : "Enter Your Name";
+  };
 
   submitButton.removeEventListener('click', handleSumbit);
   submitButton.addEventListener('click', handleSumbit);
@@ -436,9 +510,13 @@ function showInitModal() {
   function handleSumbit(e) {
     e.preventDefault();
 
-    player1 = document.querySelector('#player-1').value;
-    player2 = document.querySelector('#player-2').value;
-    maxRounds = document.querySelector('#rounds').value;
+    player1 = document.querySelector('#player-1').value || "Player 1";
+    player2 = document.querySelector('#player-2').value || "Player 2";
+    maxRounds = parseInt(document.querySelector('#rounds').value) || 5;
+    
+    // Store AI states from checkboxes.
+    player1IsAI = player1AI.checked;
+    player2IsAI = player2AI.checked;
 
     player1Name = document.querySelector('.player-one-name');
     player1Name.textContent = player1;
@@ -463,7 +541,7 @@ function showInitModal() {
       document.body.style.overflow = '';
       initGameModal.classList.remove('fade-out');
       
-      checkRound(maxRounds);
+      checkRound();
       initGame();
     }, { once: true });
   };
@@ -479,103 +557,94 @@ function checkFontSize(player) {
   } else if (player.textContent.length > 20) {
     player.style.fontSize = '1.5rem';
     player.style.textShadow = player === player1Name ? '2px 2px 0 var(--secondary-color)' : '2px 2px 0 var(--tertiary-color)';
-  }
+  };
 }
 
-function checkRound(roundAmount) {
+function checkRound() {
   const roundCounterAmount = document.querySelector('#odometer-round');
 
-  setTimeout(() => {
-    roundCounter++;
+  // Check Round.
+  if (roundCounter === maxRounds) {
+    const winner = (crossWin > circleWin) ? 'Cross Wins.' :
+                  (crossWin < circleWin) ? 'Circle Wins.' :
+                                          "It's a tie.";
+    
+    // Show game end modal or alert.
+    alert(`Game Over! ${winner}`);
+    
+    // Reset scores and round counter for a new game.
+    crossWin = 0;
+    circleWin = 0;
+    roundCounter = 0;
+    
+    // Update displays.
+    document.querySelector('#odometer-cross').textContent = crossWin;
+    document.querySelector('#odometer-circle').textContent = circleWin;
     roundCounterAmount.textContent = roundCounter;
-  }, 500);
-
-  if (roundCounter > roundAmount) return announceWinner(); // Add later.
+    
+    // Show init modal to start a new game.
+    showInitModal();
+  } else {
+    console.log(roundCounter)
+    setTimeout(() => {
+      roundCounter++;
+      roundCounterAmount.textContent = roundCounter;
+    }, 500);
+  };
 }
 
-function checkAI() {
-  const player1AI = document.querySelector('#checkbox-player-1');
-  const player2AI = document.querySelector('#checkbox-player-2');
-  const player1Input = document.querySelector('#player-1');
-  const player2Input = document.querySelector('#player-2');
+// Check if AI should make a move.
+function checkAIMove() {
+  // Use the saved state variables instead of accessing the checkboxes directly.
+  // This ensures the AI state is preserved between rounds.
+  const isXAI = player1IsAI;
+  const isOAI = player2IsAI;
+  
+  const crossContainer = document.querySelector('.cross-left-card');
+  const circleContainer = document.querySelector('.circle-right-card');
 
-  player1AI.addEventListener('change', () => {
-    if (player1AI.checked) {
-      player2AI.checked = false;
-    }
-    checkSwitch();
-  });
-
-  player2AI.addEventListener('change', () => {
-    if (player2AI.checked) {
-      player1AI.checked = false;
-    }
-    checkSwitch();
-  });
-
-  function checkSwitch() {
-    if (!player1AI.checked && !player2AI.checked) {
-      // If both are unchecked, reset to default.
-      player1Input.placeholder = "Enter Your Name";
-      player2Input.placeholder = "Enter Your Name";
-    } else {
-      // Update based on which AI checkbox is checked.
-      player1Input.placeholder = player1AI.checked ? "Enter A.I's Name" : "Enter Your Name";
-      player2Input.placeholder = player2AI.checked ? "Enter A.I's Name" : "Enter Your Name";
-    }
-  }
-
-  // After game initialization, check if AI should move
-  function checkAIMove() {
-    const crossContainer = document.querySelector('.cross-left-card');
-    const circleContainer = document.querySelector('.circle-right-card');
-
-    let aiPlayer = null;
-    if (player1AI.checked) {
-      aiPlayer = 'X';
-    } else if (player2AI.checked) {
-      aiPlayer = 'O';
-    }
-
-    if (aiPlayer && 
-    (aiPlayer === 'X' && !crossContainer.classList.contains('disabled') || 
-    (aiPlayer === 'O' && !circleContainer.classList.contains('disabled')))) {
-      // Add a slight delay so the AI looks like it is 'thinking'.
-      setTimeout(() => {
-        aiMove(aiPlayer);
-      }, 750);
-    };
-  };
-
-  // Modify the existing checkTurn function to call checkAITurn
-  const originalCheckTurn = checkTurn;
-  checkTurn = function(value) {
-    originalCheckTurn(value);
-    checkAIMove();
+  if ((isXAI && !crossContainer.classList.contains('disabled')) || 
+      (isOAI && !circleContainer.classList.contains('disabled'))) {
+    const aiPiece = isXAI ? 'X' : 'O';
+    // Add a slight delay so the AI looks like it is 'thinking'.
+    setTimeout(() => {
+      aiMove(aiPiece);
+    }, 750);
   };
 }
 
 function aiMove(playerAI) {
-  const aiPiece = playerAI === 'X' ? 'X' : 'O';
-  const humanPiece = aiPiece === 'X' ? 'X' : 'O';
+  const aiPiece = playerAI;
+  const humanPiece = aiPiece === 'X' ? 'O' : 'X';
 
   function wouldBeWin(row, col, piece) {
-    // Save winning information inside array for A.I to use.
-    const winningLines = [
-      // Rows.
-      [[row, 0], [row, 1], [row, 2]],
-      // Columns.
-      [[0, col], [1, col], [col, 2]],
-      // Both diagonal options.
-      [[0, 0], [1, 1], [2, 2]],
-      [[0, 2], [1, 1], [2, 0]]
-    ];
-
-    const win = winningLines.some(line => {
-      return line.every(([row, col]) => board[row][col] === piece);
-    });
-
-    return win;
+    // Create a temporary board copy
+    const tempBoard = board.map(arr => [...arr]);
+    tempBoard[row][col] = piece;
+    
+    // Check rows
+    for (let i = 0; i < 3; i++) {
+      if (tempBoard[i][0] === piece && tempBoard[i][1] === piece && tempBoard[i][2] === piece) {
+        return true;
+      }
+    }
+    
+    // Check columns
+    for (let i = 0; i < 3; i++) {
+      if (tempBoard[0][i] === piece && tempBoard[1][i] === piece && tempBoard[2][i] === piece) {
+        return true;
+      }
+    }
+    
+    // Check diagonals
+    if (tempBoard[0][0] === piece && tempBoard[1][1] === piece && tempBoard[2][2] === piece) {
+      return true;
+    }
+    if (tempBoard[0][2] === piece && tempBoard[1][1] === piece && tempBoard[2][0] === piece) {
+      return true;
+    }
+    
+    return false;
   };
 
   // Firstly find every empty cell.
@@ -613,48 +682,56 @@ function aiMove(playerAI) {
     if (emptyCells.length > 0) {
       // (Easy) If all else fails in making a strategic move, choose a random empty cell.
       if (aiDifficulty === 'easy') {
-        console.log('Easy');
         return chooseRandomCell(emptyCells);
       }
   
-      // (Medium) Use Easy and Try to take corners.
+      // (Medium) Try to take corners first.
       const corners = [[0, 0], [0, 2], [2, 0], [2, 2]];
       const availableCorners = corners.filter(([row, col]) => board[row][col] === null);
   
       if (aiDifficulty === 'medium') {
-        console.log('Medium');
         return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
       }
   
       // (Hard) Use Easy and Medium and Try to take the center.
       if (aiDifficulty === 'hard') {
-        console.log('Hard');
         if (board[1][1] === null) return makeMove(1, 1);
         return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
       }
-    };
-  };
+    }
+  }
 
-  // Call the difficulty selection method.
+  // Call the difficulty selection method
   return chooseDifficulty();
 
-  // Function to help the A.I make moves.
+  // Function to help the AI make moves
   function makeMove(row, col) {
-    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)
+    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
 
     cell.textContent = aiPiece;
     cell.classList.add(aiPiece === 'X' ? 'x' : 'o');
     board[row][col] = aiPiece;
 
-    // Remove a piece from the container.
-    removePiece(currentPiece);
+    // Remove a piece from the container
+    removePiece(aiPiece);
 
-    // Switch turns.
-    checkTurn(currentPiece === 'X');
+    // Switch turns
+    const isXTurn = aiPiece === 'X';
+    checkTurn(isXTurn);
     
-    // Check for game end.
-    checkGame();
-  };
+    // Check for game end
+    const gameResult = checkGame();
+    
+    // If game is not over, check if AI should move next 
+    // (if both players are AI)
+    if (!gameResult) {
+      if ((player1IsAI && player2IsAI)) {
+        setTimeout(() => {
+          checkAIMove();
+        }, 750);
+      }
+    }
+  }
 }
 
 // Setup difficulty selection event listeners.
@@ -673,6 +750,19 @@ function setupDifficultySelection() {
   mediumButton.addEventListener('click', setDifficulty);
   hardButton.addEventListener('click', setDifficulty);
 
+  // Add active class to default difficulty
+  document.querySelectorAll('.easy, .medium, .hard').forEach(btn => {
+    btn.classList.remove('active-difficulty');
+  });
+  
+  if (aiDifficulty === 'easy') {
+    easyButton.classList.add('active-difficulty');
+  } else if (aiDifficulty === 'medium') {
+    mediumButton.classList.add('active-difficulty');
+  } else if (aiDifficulty === 'hard') {
+    hardButton.classList.add('active-difficulty');
+  }
+
   function setDifficulty(event) {
     // Remove active class from all buttons.
     [easyButton, mediumButton, hardButton].forEach(btn => 
@@ -685,7 +775,7 @@ function setupDifficultySelection() {
     // Set the difficulty based on clicked button.
     aiDifficulty = event.target.classList.contains('easy') ? 'easy' :
                   event.target.classList.contains('medium') ? 'medium' : 'hard';
-  };
+  }
 }
 
 // DOM Content Loaded event handler.
@@ -751,11 +841,8 @@ document.addEventListener('DOMContentLoaded', function() {
   setupDifficultySelection();
 
   // Check A.I status.
-  checkAI();
+  checkAIMove();
   
   // Show Modal at start.
   showInitModal();
-  
-  // Initialize the game.
-  initGame();
 });
