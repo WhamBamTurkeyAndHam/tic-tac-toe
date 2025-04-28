@@ -377,7 +377,7 @@ function resetBoard() {
     [null, null, null],
     [null, null, null]
   ];
-  
+    
   document.querySelectorAll('.cell').forEach(cell => {
     cell.textContent = '';
     cell.classList.remove('x', 'o');
@@ -473,10 +473,10 @@ function showInitModal() {
   player2IsAI = false;
   player1AI.checked = false;
   player2AI.checked = false;
-  
+
   document.body.style.overflow = 'hidden';
   initGameModal.showModal();
-
+  
   // Set up AI checkbox event listeners.
   player1AI.addEventListener('change', () => {
     player1IsAI = player1AI.checked;
@@ -486,7 +486,7 @@ function showInitModal() {
     }
     updatePlayerPlaceholders();
   });
-
+  
   player2AI.addEventListener('change', () => {
     player2IsAI = player2AI.checked;
     if (player2IsAI) {
@@ -495,18 +495,19 @@ function showInitModal() {
     }
     updatePlayerPlaceholders();
   });
-
+  
   function updatePlayerPlaceholders() {
     const player1Input = document.querySelector('#player-1');
     const player2Input = document.querySelector('#player-2');
-    
+
     player1Input.placeholder = player1AI.checked ? "Enter A.I's Name" : "Enter Your Name";
     player2Input.placeholder = player2AI.checked ? "Enter A.I's Name" : "Enter Your Name";
   };
-
+  
+  // Remove previous event listener if exists.
   submitButton.removeEventListener('click', handleSumbit);
   submitButton.addEventListener('click', handleSumbit);
-
+  
   function handleSumbit(e) {
     e.preventDefault();
 
@@ -517,7 +518,7 @@ function showInitModal() {
     // Store AI states from checkboxes.
     player1IsAI = player1AI.checked;
     player2IsAI = player2AI.checked;
-
+    
     player1Name = document.querySelector('.player-one-name');
     player1Name.textContent = player1;
 
@@ -526,24 +527,40 @@ function showInitModal() {
 
     maxRoundsAmount = document.querySelector('.round-max-amount');
     maxRoundsAmount.textContent = maxRounds;
-
+    
     checkFontSize(player1Name);
     checkFontSize(player2Name);
-
-    // Add fade out class.
-    initGameModal.classList.add('fade-out');
-
-    // After fade out transition completes.
-    initGameModal.addEventListener('transitionend', () => {
-      // Hide visibility and close dialog
+    
+    // First, clear any existing transition handlers.
+    if (initGameModal._transitionHandler) {
+      initGameModal.removeEventListener('transitionend', initGameModal._transitionHandler);
+      delete initGameModal._transitionHandler;
+    }
+    
+    // Create and store a single handler.
+    const transitionEndHandler = function() {
+      // Hide visibility and close dialog.
       initGameModal.close();
       // Allow scrolling.
       document.body.style.overflow = '';
       initGameModal.classList.remove('fade-out');
       
+      // Check the round and initialize the game.
       checkRound();
       initGame();
-    }, { once: true });
+      
+      // Remove the listener since we're done.
+      initGameModal.removeEventListener('transitionend', transitionEndHandler);
+    };
+    
+    // Store the handler reference.
+    initGameModal._transitionHandler = transitionEndHandler;
+    
+    // Add the transition class to trigger animation.
+    initGameModal.classList.add('fade-out');
+    
+    // Add the event listener.
+    initGameModal.addEventListener('transitionend', transitionEndHandler, { once: true });
   };
 }
 
@@ -565,9 +582,10 @@ function checkRound() {
 
   // Check Round.
   if (roundCounter === maxRounds) {
-    const winner = (crossWin > circleWin) ? 'Cross Wins.' :
-                  (crossWin < circleWin) ? 'Circle Wins.' :
-                                          "It's a tie.";
+    const winner = 
+    (crossWin > circleWin) ? 'Cross Wins.' :
+    (crossWin < circleWin) ? 'Circle Wins.' :
+                              "It's a tie.";
     
     // Show game end modal or alert.
     alert(`Game Over! ${winner}`);
@@ -576,6 +594,7 @@ function checkRound() {
     crossWin = 0;
     circleWin = 0;
     roundCounter = 0;
+    maxRounds = 0;
     
     // Update displays.
     document.querySelector('#odometer-cross').textContent = crossWin;
@@ -585,7 +604,6 @@ function checkRound() {
     // Show init modal to start a new game.
     showInitModal();
   } else {
-    console.log(roundCounter)
     setTimeout(() => {
       roundCounter++;
       roundCounterAmount.textContent = roundCounter;
