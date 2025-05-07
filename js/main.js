@@ -23,6 +23,7 @@ let player1;
 let player2;
 let player1IsAI = false; // Added to track AI state.
 let player2IsAI = false; // Added to track AI state.
+let overallGameFlag = false;
 
 // Function to create drag image.
 function createDragImage(type) {
@@ -351,13 +352,32 @@ function showWinnerModal(winner) {
         resultsModal.style.border = '';
         resultsModal.style.display = '';
         document.body.style.overflow = '';
-      // Score the game before resetting the board.
-        if (winner) {
+        
+        // Score the game and handle the end-of-game sequence
+        if (winner && overallGameFlag === false) {
           scoreGame(winner);
           checkRound();
+        } else if (overallGameFlag === true) {
+          // For game end, reset everything here instead of in checkRound
+          setTimeout(() => {
+            // Reset game state
+            crossWin = 0;
+            circleWin = 0;
+            roundCounter = 0;
+            maxRounds = '?';
+            
+            // Update displays
+            document.querySelector('#odometer-cross').textContent = crossWin;
+            document.querySelector('#odometer-circle').textContent = circleWin;
+            document.querySelector('#odometer-round').textContent = roundCounter;
+            document.querySelector('.round-max-amount').textContent = maxRounds;
+            
+            // Now show init modal after ensuring results modal is gone
+            showInitModal();
+          }, 500); // Small delay to ensure modal is fully closed
         }
-      };
-    }
+      }
+    };
 
     // Store the handler for potential future removal.
     resultsModal._transitionHandlers = [transitionEndHandler];
@@ -377,6 +397,8 @@ function resetBoard() {
     [null, null, null],
     [null, null, null]
   ];
+
+  overallGameFlag = false;
     
   document.querySelectorAll('.cell').forEach(cell => {
     cell.textContent = '';
@@ -583,26 +605,14 @@ function checkRound() {
   // Check Round.
   if (roundCounter === maxRounds) {
     const winner = 
-    (crossWin > circleWin) ? 'Cross Wins.' :
-    (crossWin < circleWin) ? 'Circle Wins.' :
-                              "It's a tie.";
+    (crossWin > circleWin) ? 'X' :
+    (crossWin < circleWin) ? 'O' :
+                            "tie";
     
-    // Show game end modal or alert.
-    alert(`Game Over! ${winner}`);
-    
-    // Reset scores and round counter for a new game.
-    crossWin = 0;
-    circleWin = 0;
-    roundCounter = 0;
-    maxRounds = 0;
-    
-    // Update displays.
-    document.querySelector('#odometer-cross').textContent = crossWin;
-    document.querySelector('#odometer-circle').textContent = circleWin;
-    roundCounterAmount.textContent = roundCounter;
-    
-    // Show init modal to start a new game.
-    showInitModal();
+    // Show game end modal
+    showWinnerModal(winner);
+    overallGameFlag = true;
+    bigConfetti();
   } else {
     setTimeout(() => {
       roundCounter++;
@@ -864,3 +874,44 @@ document.addEventListener('DOMContentLoaded', function() {
   // Show Modal at start.
   showInitModal();
 });
+
+//Confetti by catdad, see README for the link.
+function bigConfetti() {
+  var count = 300;
+  var scalar = 2;
+  var defaults = {
+    origin: { y: 0.5 }
+  };
+  
+  function fire(particleRatio, opts) {
+    confetti({
+      scalar,
+      ...defaults,
+      ...opts,
+      particleCount: Math.floor(count * particleRatio)
+    });
+  }
+  
+  fire(0.25, {
+    spread: 60,
+    startVelocity: 55,
+  });
+  fire(0.2, {
+    spread: 80,
+  });
+  fire(0.35, {
+    spread: 120,
+    decay: 0.91,
+    scalar: 0.8
+  });
+  fire(0.1, {
+    spread: 160,
+    startVelocity: 25,
+    decay: 0.92,
+    scalar: 1.2
+  });
+  fire(0.1, {
+    spread: 180,
+    startVelocity: 45,
+  });
+}
