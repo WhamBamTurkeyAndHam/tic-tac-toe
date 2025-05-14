@@ -24,6 +24,7 @@ let player2;
 let player1IsAI = false; // Added to track AI state.
 let player2IsAI = false; // Added to track AI state.
 let overallGameFlag = false;
+let canMakeMove = false;
 
 // Function to create drag image.
 function createDragImage(type) {
@@ -322,6 +323,8 @@ function showWinnerModal(winner) {
   const textModal = document.querySelector('.modal-text');
   const continueButtonModal = document.querySelector('.continue-button-modal');
 
+  canMakeMove = false;
+
   resultsModal.style.opacity = '0';
   resultsModal.showModal();
   resultsModal.classList.remove('fade-out');
@@ -332,14 +335,17 @@ function showWinnerModal(winner) {
   document.body.style.overflow = 'hidden';
   resultsModal.style.display = 'grid';
 
+  let player1NameText = player1Name.textContent;
+  let player2NameText = player2Name.textContent;
+
   if (winner === 'X') {
     resultsModal.classList.add('win-x');
     resultsModal.style.border = 'outset var(--secondary-color) 5px';
-    textModal.textContent = 'X is the Winner.';
+    textModal.textContent = `${player1NameText} is the Winner.`;
   } else if (winner === 'O') {
     resultsModal.classList.add('win-o');
     resultsModal.style.border = 'outset var(--tertiary-color) 5px';
-    textModal.textContent = 'O is the Winner.';
+    textModal.textContent = `${player2NameText} is the Winner.`;
   } else if (winner === 'tie') {
     resultsModal.classList.add('tie');
     resultsModal.style.border = 'outset var(--main-color) 5px';
@@ -525,14 +531,11 @@ function initGame() {
     // Update cell display based on board state.
     cell.textContent = board[row][col] || '';
   });
+
+  canMakeMove = true;
   
   // Start with X's turn.
   checkTurn(false);
-  
-  // Check AI setup and move if needed.
-  setTimeout(() => {
-    checkAIMove();
-  }, 500);
 }
 
 function showInitModal() {
@@ -540,6 +543,8 @@ function showInitModal() {
   const submitButton = document.querySelector('.submit-btn');
   const player1AI = document.querySelector('#checkbox-player-1');
   const player2AI = document.querySelector('#checkbox-player-2');
+
+  canMakeMove = false;
   
   // Initialize checkbox states.
   player1IsAI = false;
@@ -665,9 +670,12 @@ function checkRound() {
     showWinnerModal(winner);
     overallGameFlag = true;
     finalScoreModal.textContent = `${crossWin} - ${circleWin}`;
+    canMakeMove = false;
     bigConfetti();
   } else {
+    canMakeMove = true;
     setTimeout(() => {
+      checkAIMove(); // Check AI setup and move if needed.
       roundCounter++;
       roundCounterAmount.textContent = roundCounter;
     }, 500);
@@ -690,126 +698,128 @@ function checkAIMove() {
     // Add a slight delay so the AI looks like it is 'thinking'.
     setTimeout(() => {
       aiMove(aiPiece);
-    }, Math.random().toFixed(1) * 2500); // Randomise the time it 'thinks' so it doesn't look like the same amount of 'thinking'.
+    }, Math.max(500, Math.random() * 2500)); // Randomise the time it 'thinks' so it doesn't look like the same amount of 'thinking'.
   };
 }
 
 function aiMove(playerAI) {
-  const aiPiece = playerAI;
-  const humanPiece = aiPiece === 'X' ? 'O' : 'X';
+  if (canMakeMove) {
+    const aiPiece = playerAI;
+    const humanPiece = aiPiece === 'X' ? 'O' : 'X';
 
-  function wouldBeWin(row, col, piece) {
-    // Create a temporary board copy
-    const tempBoard = board.map(arr => [...arr]);
-    tempBoard[row][col] = piece;
-    
-    // Check rows
-    for (let i = 0; i < 3; i++) {
-      if (tempBoard[i][0] === piece && tempBoard[i][1] === piece && tempBoard[i][2] === piece) {
+    function wouldBeWin(row, col, piece) {
+      // Create a temporary board copy
+      const tempBoard = board.map(arr => [...arr]);
+      tempBoard[row][col] = piece;
+      
+      // Check rows
+      for (let i = 0; i < 3; i++) {
+        if (tempBoard[i][0] === piece && tempBoard[i][1] === piece && tempBoard[i][2] === piece) {
+          return true;
+        }
+      }
+      
+      // Check columns
+      for (let i = 0; i < 3; i++) {
+        if (tempBoard[0][i] === piece && tempBoard[1][i] === piece && tempBoard[2][i] === piece) {
+          return true;
+        }
+      }
+      
+      // Check diagonals
+      if (tempBoard[0][0] === piece && tempBoard[1][1] === piece && tempBoard[2][2] === piece) {
         return true;
       }
-    }
-    
-    // Check columns
-    for (let i = 0; i < 3; i++) {
-      if (tempBoard[0][i] === piece && tempBoard[1][i] === piece && tempBoard[2][i] === piece) {
+      if (tempBoard[0][2] === piece && tempBoard[1][1] === piece && tempBoard[2][0] === piece) {
         return true;
       }
-    }
-    
-    // Check diagonals
-    if (tempBoard[0][0] === piece && tempBoard[1][1] === piece && tempBoard[2][2] === piece) {
-      return true;
-    }
-    if (tempBoard[0][2] === piece && tempBoard[1][1] === piece && tempBoard[2][0] === piece) {
-      return true;
-    }
-    
-    return false;
-  };
+      
+      return false;
+    };
 
-  // Firstly find every empty cell.
-  const emptyCells = [];
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      if (board[i][j] === null) {
-        emptyCells.push([i, j]);
+    // Firstly find every empty cell.
+    const emptyCells = [];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === null) {
+          emptyCells.push([i, j]);
+        }
+      };
+    };
+
+    // Secondly try to win.
+    for (const [row, col] of emptyCells) {
+      if (wouldBeWin(row, col, aiPiece)) {
+        return makeMove(row, col);
       }
     };
-  };
 
-  // Secondly try to win.
-  for (const [row, col] of emptyCells) {
-    if (wouldBeWin(row, col, aiPiece)) {
+    // Then, try block the player from winning.
+    for (const [row, col] of emptyCells) {
+      if (wouldBeWin(row, col, humanPiece)) {
+        return makeMove(row, col);
+      }
+    };
+
+    // What the A.I will do between a selection of Easy, Medium or Hard.
+    function chooseRandomCell(cells) {
+      const [row, col] = cells[Math.floor(Math.random() * cells.length)];
       return makeMove(row, col);
     }
-  };
 
-  // Then, try block the player from winning.
-  for (const [row, col] of emptyCells) {
-    if (wouldBeWin(row, col, humanPiece)) {
-      return makeMove(row, col);
-    }
-  };
-
-  // What the A.I will do between a selection of Easy, Medium or Hard.
-  function chooseRandomCell(cells) {
-    const [row, col] = cells[Math.floor(Math.random() * cells.length)];
-    return makeMove(row, col);
-  }
-
-  // Function to choose a move based on difficulty.
-  function chooseDifficulty() {
-    if (emptyCells.length > 0) {
-      // (Easy) If all else fails in making a strategic move, choose a random empty cell.
-      if (aiDifficulty === 'easy') {
-        return chooseRandomCell(emptyCells);
-      }
-  
-      // (Medium) Try to take corners first.
-      const corners = [[0, 0], [0, 2], [2, 0], [2, 2]];
-      const availableCorners = corners.filter(([row, col]) => board[row][col] === null);
-  
-      if (aiDifficulty === 'medium') {
-        return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
-      }
-  
-      // (Hard) Use Easy and Medium and Try to take the center.
-      if (aiDifficulty === 'hard') {
-        if (board[1][1] === null) return makeMove(1, 1);
-        return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
+    // Function to choose a move based on difficulty.
+    function chooseDifficulty() {
+      if (emptyCells.length > 0) {
+        // (Easy) If all else fails in making a strategic move, choose a random empty cell.
+        if (aiDifficulty === 'easy') {
+          return chooseRandomCell(emptyCells);
+        }
+    
+        // (Medium) Try to take corners first.
+        const corners = [[0, 0], [0, 2], [2, 0], [2, 2]];
+        const availableCorners = corners.filter(([row, col]) => board[row][col] === null);
+    
+        if (aiDifficulty === 'medium') {
+          return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
+        }
+    
+        // (Hard) Use Easy and Medium and Try to take the center.
+        if (aiDifficulty === 'hard') {
+          if (board[1][1] === null) return makeMove(1, 1);
+          return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
+        }
       }
     }
-  }
 
-  // Call the difficulty selection method
-  return chooseDifficulty();
+    // Call the difficulty selection method
+    return chooseDifficulty();
 
-  // Function to help the AI make moves
-  function makeMove(row, col) {
-    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+    // Function to help the AI make moves
+    function makeMove(row, col) {
+      const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
 
-    cell.textContent = aiPiece;
-    cell.classList.add(aiPiece === 'X' ? 'x' : 'o');
-    board[row][col] = aiPiece;
+      cell.textContent = aiPiece;
+      cell.classList.add(aiPiece === 'X' ? 'x' : 'o');
+      board[row][col] = aiPiece;
 
-    // Remove a piece from the container
-    removePiece(aiPiece);
+      // Remove a piece from the container
+      removePiece(aiPiece);
 
-    // Switch turns
-    const isXTurn = aiPiece === 'X';
-    checkTurn(isXTurn);
-    
-    // Check for game end
-    const gameResult = checkGame();
-    
-    // If game is not over, check if AI should move next 
-    // (if both players are AI)
-    if (!gameResult) {
-      if ((player1IsAI && player2IsAI)) {
-        setTimeout(() => {
-          checkAIMove();
-        }, 750);
+      // Switch turns
+      const isXTurn = aiPiece === 'X';
+      checkTurn(isXTurn);
+      
+      // Check for game end
+      const gameResult = checkGame();
+      
+      // If game is not over, check if AI should move next 
+      // (if both players are AI)
+      if (!gameResult) {
+        if ((player1IsAI && player2IsAI)) {
+          setTimeout(() => {
+            checkAIMove();
+          }, 750);
+        }
       }
     }
   }
