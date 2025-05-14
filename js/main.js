@@ -214,12 +214,44 @@ function checkTurn(value) {
   const crossContainer = document.querySelector('.cross-left-card');
   const circleContainer = document.querySelector('.circle-right-card');
 
+  const player1ThinkingContainer = document.querySelector('.player1-thinking-container');
+  const player2ThinkingContainer = document.querySelector('.player2-thinking-container');
+
+  const player1ThinkingElements = document.querySelectorAll('.player1-thinking-text span');
+  const player2ThinkingElements = document.querySelectorAll('.player2-thinking-text span');
+
   if (!crossTurn) {
+    // Add disabled to the circle side...
     circleContainer.classList.add('disabled');
+    player2ThinkingContainer.classList.add('disabled');
+
+    // ...make player 1 text animate...
+    player1ThinkingElements.forEach(span => {
+      span.classList.add('thinking-text-waving-animation');
+    });
+
+    // ...remove player 1 related classes and stop animating player 2.
     crossContainer.classList.remove('disabled');
+    player1ThinkingContainer.classList.remove('disabled');
+    player2ThinkingElements.forEach(span => {
+      span.classList.remove('thinking-text-waving-animation');
+    });
   } else {
+    // Add disabled to the cross side...
     crossContainer.classList.add('disabled');
+    player1ThinkingContainer.classList.add('disabled');
+
+    // ...make player 2 text animate...
+    player2ThinkingElements.forEach(span => {
+      span.classList.add('thinking-text-waving-animation');
+    });
+
+    // ...remove player 2 related classes and stop animating player 1.
     circleContainer.classList.remove('disabled');
+    player2ThinkingContainer.classList.remove('disabled');
+    player1ThinkingElements.forEach(span => {
+      span.classList.remove('thinking-text-waving-animation');
+    });
   }
 }
 
@@ -353,28 +385,29 @@ function showWinnerModal(winner) {
         resultsModal.style.display = '';
         document.body.style.overflow = '';
         
-        // Score the game and handle the end-of-game sequence
+        // Score the game and handle the end-of-game sequence.
         if (winner && overallGameFlag === false) {
           scoreGame(winner);
           checkRound();
         } else if (overallGameFlag === true) {
-          // For game end, reset everything here instead of in checkRound
+          // For game end, reset everything here instead of in checkRound.
           setTimeout(() => {
-            // Reset game state
+            // Reset game state.
             crossWin = 0;
             circleWin = 0;
             roundCounter = 0;
             maxRounds = '?';
             
-            // Update displays
+            // Update displays.
             document.querySelector('#odometer-cross').textContent = crossWin;
             document.querySelector('#odometer-circle').textContent = circleWin;
             document.querySelector('#odometer-round').textContent = roundCounter;
             document.querySelector('.round-max-amount').textContent = maxRounds;
+            document.querySelector('.overall-score').textContent = '';
             
-            // Now show init modal after ensuring results modal is gone
+            // Now show init modal after ensuring results modal is gone.
             showInitModal();
-          }, 500); // Small delay to ensure modal is fully closed
+          }, 500); // Small delay to ensure modal is fully closed.
         }
       }
     };
@@ -411,6 +444,12 @@ function resetBoard() {
   const circleCard = document.querySelector('.circle-right-card');
   const circleCount = circleCard.querySelectorAll('.circle').length;
 
+  const player1ThinkingContainer = document.querySelector('.player1-thinking-container');
+  const player2ThinkingContainer = document.querySelector('.player2-thinking-container');
+
+  const player1ThinkingElements = document.querySelectorAll('.player1-thinking-text span');
+  const player2ThinkingElements = document.querySelectorAll('.player2-thinking-text span');
+
   for (let i = crossCount; i < 5; i++) {
     const cross = document.createElement('div');
     cross.textContent = 'X';
@@ -432,7 +471,19 @@ function resetBoard() {
 
   crossCard.classList.remove('disabled');
   circleCard.classList.add('disabled');  // X always goes first.
-  
+
+  // Reset Player 1 to be enabled.
+  player1ThinkingContainer.classList.remove('disabled');
+  player1ThinkingElements.forEach(span => {
+    span.classList.add('thinking-text-waving-animation');
+  });
+
+  // Reset Player 2 to be disabled.
+  player2ThinkingContainer.classList.add('disabled');
+    player2ThinkingElements.forEach(span => {
+    span.classList.remove('thinking-text-waving-animation');
+  });
+
   // Check if AI should make a move (for X).
   setTimeout(() => {
     checkAIMove();
@@ -601,6 +652,7 @@ function checkFontSize(player) {
 
 function checkRound() {
   const roundCounterAmount = document.querySelector('#odometer-round');
+  const finalScoreModal = document.querySelector('.overall-score');
 
   // Check Round.
   if (roundCounter === maxRounds) {
@@ -612,6 +664,7 @@ function checkRound() {
     // Show game end modal
     showWinnerModal(winner);
     overallGameFlag = true;
+    finalScoreModal.textContent = `${crossWin} - ${circleWin}`;
     bigConfetti();
   } else {
     setTimeout(() => {
@@ -637,7 +690,7 @@ function checkAIMove() {
     // Add a slight delay so the AI looks like it is 'thinking'.
     setTimeout(() => {
       aiMove(aiPiece);
-    }, 750);
+    }, Math.random().toFixed(1) * 2500); // Randomise the time it 'thinks' so it doesn't look like the same amount of 'thinking'.
   };
 }
 
@@ -875,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
   showInitModal();
 });
 
-//Confetti by catdad, see README for the link.
+// Confetti by catdad, see README for the link.
 function bigConfetti() {
   var count = 300;
   var scalar = 2;

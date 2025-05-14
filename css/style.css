@@ -30,12 +30,10 @@ footer {
 
 .text-3d-header {
   font-size: 7rem;
-  letter-spacing: 2rem;
 }
 
 .text-3d-footer {
   font-size: 4rem;
-  letter-spacing: 0.5rem;
 }
 
 /* Text Shadowing */
@@ -50,7 +48,9 @@ footer {
 .text-orange,
 .round-text,
 .round-container,
-.rounds-modal {
+.rounds-modal,
+.player1-thinking-text,
+.player2-thinking-text {
   text-shadow: 
   5px 5px 0 var(--main-color);
 }
@@ -91,7 +91,9 @@ footer {
 .score-player-container-one,
 .score-player-container-two,
 .button-container,
-.round-master-container {
+.round-master-container,
+.player1-thinking-container,
+.player2-thinking-container {
   height: 100%;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 16px;
@@ -183,8 +185,12 @@ footer {
   background-color: red;
 }
 
+.player1-thinking-container {
+  grid-area: 2 / 2 / 3 / 3;
+}
+
 .round-master-container {
-  grid-area: 2 / 2 / 3 / 5;
+  grid-area: 2 / 3 / 3 / 4;
   font-size: 5rem;
   display: flex;
   flex-direction: column;
@@ -194,6 +200,16 @@ footer {
   display: flex;
   flex-direction: row;
   gap: 2rem;
+}
+
+.player2-thinking-container {
+  grid-area: 2 / 4 / 3 / 5;
+}
+
+.player1-thinking-text,
+.player2-thinking-text {
+  font-size: 2rem;
+
 }
 
 .score-player-container-one,
@@ -369,6 +385,13 @@ dialog.fade-out {
   outline: none;
   gap: 1.5rem;
   border: none;
+  z-index: 10;
+}
+
+.overall-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-init-game form {
@@ -574,6 +597,12 @@ a {
 .text-waving-animation {
   display: inline-block;
   animation: wave 1.2s;
+  animation-delay: calc(0.1s * var(--i));
+}
+
+.thinking-text-waving-animation {
+  display: inline-block;
+  animation: wave 2.5s infinite;
   animation-delay: calc(0.1s * var(--i));
 }
 

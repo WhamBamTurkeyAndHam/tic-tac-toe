@@ -6,4 +6,6 @@ but this is mostly the same stuff. I kept having issues because much of what I d
 which meant I had issues with things not being defined. I figured the best I could do was completely rework the whole
 thing.
 
+Confetti by: https://github.com/catdad/canvas-confetti
+
 # tic-tac-toe
