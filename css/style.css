@@ -514,6 +514,11 @@ input::-webkit-inner-spin-button {
   fill: rgb(255, 255, 255);
 }
 
+.error {
+  outline: red 3px solid;
+  transition: all 0.5s ease-in;
+}
+
 .win-x {
   text-shadow: 
   5px 5px 0 var(--secondary-color),

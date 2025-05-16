@@ -26,6 +26,17 @@ let player2IsAI = false; // Added to track AI state.
 let overallGameFlag = false;
 let canMakeMove = false;
 
+// Validate to make sure rounds are between and including 1 - 10, and aren't words.
+function validateRound(inputElement) {
+  inputBox = document.querySelector('#rounds');
+  maxRounds = parseInt(inputElement.value);
+  if (maxRounds < 1 || maxRounds > 10) {
+    inputBox.classList.add('error');
+  } else {
+    inputBox.classList.remove('error');
+  };
+}
+
 // Function to create drag image.
 function createDragImage(type) {
   // Remove any existing drag image.
@@ -79,8 +90,8 @@ function handleMouseMove(e) {
     if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
       cell.textContent = '';
       cell.classList.remove('highlight-cross', 'highlight-circle');
-    }
-  });
+    };
+  })
   
   // If mouse is over a cell, highlight it.
   if (cellUnderMouse && cellUnderMouse.classList.contains('cell')) {
@@ -131,8 +142,8 @@ function handleMouseUp(e) {
     if (!board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
       cell.textContent = '';
       cell.classList.remove('highlight-cross', 'highlight-circle');
-    }
-  });
+    };
+  })
   
   // Remove drag image and clean up.
   removeDragImage();
@@ -174,7 +185,7 @@ function setupPieceDragEvents(pieceType) {
       // Setup move and up events
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-    });
+    })
   });
 }
 
@@ -205,7 +216,7 @@ function removePiece(piece) {
     if (lastCirclePiece) {
       lastCirclePiece.remove();
     }
-  }
+  };
 }
 
 // Check whose turn it is.
@@ -252,8 +263,8 @@ function checkTurn(value) {
     player2ThinkingContainer.classList.remove('disabled');
     player1ThinkingElements.forEach(span => {
       span.classList.remove('thinking-text-waving-animation');
-    });
-  }
+    })
+  };
 }
 
 // Check if line has a winner.
@@ -299,7 +310,7 @@ function checkGame() {
         isBoardFull = false;
         break;
       }
-    }
+    };
     if (!isBoardFull) break;
   }
   
@@ -313,7 +324,6 @@ function checkGame() {
     showWinnerModal('tie');
     return 'tie';
   }
-
   return false;
 }
 
@@ -414,9 +424,9 @@ function showWinnerModal(winner) {
             // Now show init modal after ensuring results modal is gone.
             showInitModal();
           }, 500); // Small delay to ensure modal is fully closed.
-        }
-      }
-    };
+        };
+      };
+    }
 
     // Store the handler for potential future removal.
     resultsModal._transitionHandlers = [transitionEndHandler];
@@ -507,7 +517,7 @@ function scoreGame(winner) {
   } else if (winner === 'O') {
     circleWin++;
     circleScore.textContent = circleWin;
-  }
+  };
 }
 
 // Initialize the game when DOM is loaded.
@@ -587,58 +597,61 @@ function showInitModal() {
   submitButton.addEventListener('click', handleSumbit);
   
   function handleSumbit(e) {
-    e.preventDefault();
-
     player1 = document.querySelector('#player-1').value || "Player 1";
     player2 = document.querySelector('#player-2').value || "Player 2";
     maxRounds = parseInt(document.querySelector('#rounds').value) || 5;
-    
-    // Store AI states from checkboxes.
-    player1IsAI = player1AI.checked;
-    player2IsAI = player2AI.checked;
-    
-    player1Name = document.querySelector('.player-one-name');
-    player1Name.textContent = player1;
 
-    player2Name = document.querySelector('.player-two-name');
-    player2Name.textContent = player2;
+    if (maxRounds >= 1 && maxRounds <= 10) {
+      e.preventDefault();
 
-    maxRoundsAmount = document.querySelector('.round-max-amount');
-    maxRoundsAmount.textContent = maxRounds;
-    
-    checkFontSize(player1Name);
-    checkFontSize(player2Name);
-    
-    // First, clear any existing transition handlers.
-    if (initGameModal._transitionHandler) {
-      initGameModal.removeEventListener('transitionend', initGameModal._transitionHandler);
-      delete initGameModal._transitionHandler;
+      inputBox.classList.remove('error');
+      // Store AI states from checkboxes.
+      player1IsAI = player1AI.checked;
+      player2IsAI = player2AI.checked;
+      
+      player1Name = document.querySelector('.player-one-name');
+      player1Name.textContent = player1;
+
+      player2Name = document.querySelector('.player-two-name');
+      player2Name.textContent = player2;
+
+      maxRoundsAmount = document.querySelector('.round-max-amount');
+      maxRoundsAmount.textContent = maxRounds;
+      
+      checkFontSize(player1Name);
+      checkFontSize(player2Name);
+      
+      // First, clear any existing transition handlers.
+      if (initGameModal._transitionHandler) {
+        initGameModal.removeEventListener('transitionend', initGameModal._transitionHandler);
+        delete initGameModal._transitionHandler;
+      }
+      
+      // Create and store a single handler.
+      const transitionEndHandler = function() {
+        // Hide visibility and close dialog.
+        initGameModal.close();
+        // Allow scrolling.
+        document.body.style.overflow = '';
+        initGameModal.classList.remove('fade-out');
+        
+        // Check the round and initialize the game.
+        checkRound();
+        initGame();
+        
+        // Remove the listener since we're done.
+        initGameModal.removeEventListener('transitionend', transitionEndHandler);
+      };
+      
+      // Store the handler reference.
+      initGameModal._transitionHandler = transitionEndHandler;
+      
+      // Add the transition class to trigger animation.
+      initGameModal.classList.add('fade-out');
+      
+      // Add the event listener.
+      initGameModal.addEventListener('transitionend', transitionEndHandler, { once: true });
     }
-    
-    // Create and store a single handler.
-    const transitionEndHandler = function() {
-      // Hide visibility and close dialog.
-      initGameModal.close();
-      // Allow scrolling.
-      document.body.style.overflow = '';
-      initGameModal.classList.remove('fade-out');
-      
-      // Check the round and initialize the game.
-      checkRound();
-      initGame();
-      
-      // Remove the listener since we're done.
-      initGameModal.removeEventListener('transitionend', transitionEndHandler);
-    };
-    
-    // Store the handler reference.
-    initGameModal._transitionHandler = transitionEndHandler;
-    
-    // Add the transition class to trigger animation.
-    initGameModal.classList.add('fade-out');
-    
-    // Add the event listener.
-    initGameModal.addEventListener('transitionend', transitionEndHandler, { once: true });
   };
 }
 
@@ -743,23 +756,23 @@ function aiMove(playerAI) {
       for (let j = 0; j < 3; j++) {
         if (board[i][j] === null) {
           emptyCells.push([i, j]);
-        }
+        };
       };
-    };
+    }
 
     // Secondly try to win.
     for (const [row, col] of emptyCells) {
       if (wouldBeWin(row, col, aiPiece)) {
         return makeMove(row, col);
-      }
-    };
+      };
+    }
 
     // Then, try block the player from winning.
     for (const [row, col] of emptyCells) {
       if (wouldBeWin(row, col, humanPiece)) {
         return makeMove(row, col);
-      }
-    };
+      };
+    }
 
     // What the A.I will do between a selection of Easy, Medium or Hard.
     function chooseRandomCell(cells) {
@@ -787,8 +800,8 @@ function aiMove(playerAI) {
         if (aiDifficulty === 'hard') {
           if (board[1][1] === null) return makeMove(1, 1);
           return availableCorners.length > 0 ? chooseRandomCell(availableCorners) : chooseRandomCell(emptyCells);
-        }
-      }
+        };
+      };
     }
 
     // Call the difficulty selection method
@@ -819,10 +832,10 @@ function aiMove(playerAI) {
           setTimeout(() => {
             checkAIMove();
           }, 750);
-        }
-      }
-    }
-  }
+        };
+      };
+    };
+  };
 }
 
 // Setup difficulty selection event listeners.
@@ -866,7 +879,7 @@ function setupDifficultySelection() {
     // Set the difficulty based on clicked button.
     aiDifficulty = event.target.classList.contains('easy') ? 'easy' :
                   event.target.classList.contains('medium') ? 'medium' : 'hard';
-  }
+  };
 }
 
 // DOM Content Loaded event handler.
@@ -909,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startAnimation();
           }
         }, totalCycleDuration);
-      }
+      };
     }
   
     // Mouse enter - start animation cycle.
