@@ -949,7 +949,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function resetGame() {
   const resultsModal = document.querySelector('.modal-result');
-  
+
   crossWin = 0;
   circleWin = 0;
   roundCounter = 0;
@@ -968,6 +968,8 @@ function resetGame() {
   resultsModal.style.border = '';
   resultsModal.style.display = '';
   document.body.style.overflow = '';
+
+  resetBoard();
 
   showInitModal();
 }
