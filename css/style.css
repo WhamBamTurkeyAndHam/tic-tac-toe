@@ -125,7 +125,7 @@ footer {
 }
 
 .difficulty-button,
-.reset-button {
+.reset-button-main {
   padding: 1rem;
   border-radius: 15px;
   font-size: 3rem;
@@ -135,12 +135,12 @@ footer {
   transition: all 0.2s;
 }
 
-.reset-button {
+.reset-button-main {
   width: 25%;
 }
 
 .difficulty-button:hover,
-.reset-button:hover {
+.reset-button-main:hover {
   transform: scale(1.1);
   transition: all 0.25s;
   color: white;
@@ -148,7 +148,7 @@ footer {
 }
 
 .difficulty-button:active,
-.reset-button:active {
+.reset-button-main:active {
   transform: scale(0.95);
 }
 
@@ -181,7 +181,7 @@ footer {
   background-color: var(--tertiary-color);
 }
 
-.reset-button:hover {
+.reset-button-main:hover {
   background-color: red;
 }
 

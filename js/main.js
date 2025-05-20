@@ -37,6 +37,13 @@ function validateRound(inputElement) {
   };
 }
 
+document.querySelector('.reset-button-main').addEventListener('click', () => {
+  resetGame();
+});
+document.querySelector('.reset-button-modal').addEventListener('click', () => {
+  resetGame();
+});
+
 // Function to create drag image.
 function createDragImage(type) {
   // Remove any existing drag image.
@@ -409,18 +416,7 @@ function showWinnerModal(winner) {
           // For game end, reset everything here instead of in checkRound.
           setTimeout(() => {
             // Reset game state.
-            crossWin = 0;
-            circleWin = 0;
-            roundCounter = 0;
-            maxRounds = '?';
-            
-            // Update displays.
-            document.querySelector('#odometer-cross').textContent = crossWin;
-            document.querySelector('#odometer-circle').textContent = circleWin;
-            document.querySelector('#odometer-round').textContent = roundCounter;
-            document.querySelector('.round-max-amount').textContent = maxRounds;
-            document.querySelector('.overall-score').textContent = '';
-            
+            resetGame();
             // Now show init modal after ensuring results modal is gone.
             showInitModal();
           }, 500); // Small delay to ensure modal is fully closed.
@@ -950,6 +946,31 @@ document.addEventListener('DOMContentLoaded', function() {
   // Show Modal at start.
   showInitModal();
 });
+
+function resetGame() {
+  const resultsModal = document.querySelector('.modal-result');
+  
+  crossWin = 0;
+  circleWin = 0;
+  roundCounter = 0;
+  maxRounds = '?';
+  
+  // Update displays.
+  document.querySelector('#odometer-cross').textContent = crossWin;
+  document.querySelector('#odometer-circle').textContent = circleWin;
+  document.querySelector('#odometer-round').textContent = roundCounter;
+  document.querySelector('.round-max-amount').textContent = maxRounds;
+  document.querySelector('.overall-score').textContent = '';
+
+  // Hide visibility and close dialog.
+  resultsModal.close();
+  // Reset styles and cleanup.
+  resultsModal.style.border = '';
+  resultsModal.style.display = '';
+  document.body.style.overflow = '';
+
+  showInitModal();
+}
 
 // Confetti by catdad, see README for the link.
 function bigConfetti() {
